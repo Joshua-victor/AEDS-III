@@ -11,10 +11,10 @@ public class Lista implements Registro {
     public int id;
     public String nome;
     public String descricao;
-    public long dataCriacao; 
+    public long dataCriacao;
     public long dataLimite;
     public String codigoCompartilhavel;
-    public int idUsuario; 
+    public int idUsuario;
 
     public Lista() {
         this(-1, "", "", LocalDate.now(), null, "", -1);
@@ -30,18 +30,25 @@ public class Lista implements Registro {
         this.idUsuario = idUsuario;
     }
 
+    @Override
     public void setId(int id) {
         this.id = id;
     }
 
+    @Override
     public int getId() {
-        return id;
+        return this.id;
     }
 
     public int getIdUsuario() {
         return idUsuario;
     }
 
+    public String getCodigoCompartilhavel() {
+        return this.codigoCompartilhavel;
+    }
+
+    @Override
     public String toString() {
         LocalDate dataCriacaoLocal = LocalDate.ofEpochDay(this.dataCriacao);
         LocalDate dataLimiteLocal = (this.dataLimite != -1) ? LocalDate.ofEpochDay(this.dataLimite) : null;

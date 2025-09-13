@@ -6,21 +6,19 @@ import java.io.IOException;
 
 public class ParEmailID implements aed3.RegistroHashExtensivel<ParEmailID> {
     
-    
     private String email; 
-    private int id;     
+    private int id;
+    private final short TAMANHO = 54; // 50 bytes para o email + 4 bytes para o id
 
     public ParEmailID() {
-        this.email = ""; // Inicializa a string vazia.
-        this.id = -1;
+        this("", -1);
     }
-
-    public ParEmailID(String email, int id) throws Exception {
+    
+    public ParEmailID(String email, int id) {
         this.email = email;
         this.id = id;
     }
 
-    
     public String getEmail() {
         return email;
     }
@@ -31,15 +29,12 @@ public class ParEmailID implements aed3.RegistroHashExtensivel<ParEmailID> {
 
     @Override
     public int hashCode() {
-        //  método de hash usa o email.
-        return hash(this.email);
+        return this.email.hashCode();
     }
     
-    // Este método a retorna o tamanho dinâmico do registro.
     @Override
     public short size() {
-        
-        return (short) (2 + this.email.length() + 4); 
+        return this.TAMANHO;
     }
 
     @Override
@@ -51,28 +46,35 @@ public class ParEmailID implements aed3.RegistroHashExtensivel<ParEmailID> {
     public byte[] toByteArray() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
-        dos.writeUTF(this.email); 
+        
+        byte[] emailBytes = new byte[TAMANHO - 4]; // TAMANHO_MAX_EMAIL
+        byte[] emailStringBytes = this.email.getBytes("UTF-8");
+        
+        System.arraycopy(emailStringBytes, 0, emailBytes, 0, Math.min(emailStringBytes.length, TAMANHO - 4));
+        
+        dos.write(emailBytes);
         dos.writeInt(this.id);
+        
         return baos.toByteArray();
     }
 
     @Override
-public void fromByteArray(byte[] ba) throws IOException {
-    ByteArrayInputStream bais = new ByteArrayInputStream(ba);
-    DataInputStream dis = new DataInputStream(bais);
-    try {
-        this.email = dis.readUTF();
+    public void fromByteArray(byte[] ba) throws IOException {
+        ByteArrayInputStream bais = new ByteArrayInputStream(ba);
+        DataInputStream dis = new DataInputStream(bais);
+        
+        byte[] emailBytes = new byte[TAMANHO - 4]; // TAMANHO_MAX_EMAIL
+        dis.read(emailBytes);
+        
+        // Remove os zeros (caracteres nulos) do final do array de bytes
+        int i = emailBytes.length - 1;
+        while (i >= 0 && emailBytes[i] == 0) {
+            i--;
+        }
+        byte[] temp = new byte[i + 1];
+        System.arraycopy(emailBytes, 0, temp, 0, i + 1);
+
+        this.email = new String(temp, "UTF-8");
         this.id = dis.readInt();
-    } catch (IOException e) {
-        // Se chegou no fim inesperadamente, limpa os campos
-        this.email = "";
-        this.id = -1;
-        throw e; // ou apenas retorna, se quiser engolir o erro
-    }
-}
-
-
-    public static int hash(String email) {
-        return email.hashCode();
     }
 }

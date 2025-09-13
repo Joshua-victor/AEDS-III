@@ -15,7 +15,7 @@ public static void main(String[] args) {
             System.out.println("\n\nAEDsIII");
             System.out.println("-------");
             System.out.println("> Início");
-            System.out.println("\n1 - Clientes");
+            System.out.println("\n1 - Usuario");
             System.out.println("0 - Sair");
 
             System.out.print("\nOpção: ");

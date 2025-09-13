@@ -32,8 +32,10 @@ public class ArquivoUsuario extends aed3.Arquivo<Usuario> {
     }
 
     public Usuario read(String email) throws Exception {
-        // Busca o par (email, id) no índice indireto usando o hash do email
-        ParEmailID pei = indiceIndiretoEmail.read(ParEmailID.hash(email));
+        // Cria um objeto temporário para calcular o hash do e-mail
+        ParEmailID temp = new ParEmailID(email, -1);
+       
+        ParEmailID pei = indiceIndiretoEmail.read(temp.hashCode());
         if(pei == null)
             return null;
             
@@ -42,13 +44,15 @@ public class ArquivoUsuario extends aed3.Arquivo<Usuario> {
     }
     
     public boolean delete(String email) throws Exception {
+        // Cria um objeto temporário para calcular o hash do e-mail
+        ParEmailID temp = new ParEmailID(email, -1);
         // Busca o par (email, id) para obter o ID do usuário
-        ParEmailID pei = indiceIndiretoEmail.read(ParEmailID.hash(email));
+        ParEmailID pei = indiceIndiretoEmail.read(temp.hashCode());
         if(pei != null) {
             // Se o registro for excluído do arquivo principal,
             if(super.delete(pei.getId())) {
                 // remove também o par (email, id) do índice indireto
-                return indiceIndiretoEmail.delete(ParEmailID.hash(email));
+                return indiceIndiretoEmail.delete(temp.hashCode());
             }
         }
         return false;
@@ -61,8 +65,10 @@ public class ArquivoUsuario extends aed3.Arquivo<Usuario> {
         if(u != null) {
             // Se o registro for excluído do arquivo principal,
             if(super.delete(id)) {
+                // Cria um objeto temporário para calcular o hash do e-mail
+                ParEmailID temp = new ParEmailID(u.getEmail(), -1);
                 // remove o par (email, id) do índice indireto
-                return indiceIndiretoEmail.delete(ParEmailID.hash(u.getEmail()));
+                return indiceIndiretoEmail.delete(temp.hashCode());
             }
         }
         return false;
@@ -75,7 +81,10 @@ public class ArquivoUsuario extends aed3.Arquivo<Usuario> {
         if(super.update(novoUsuario)) {
             // Se o email foi alterado, atualiza o índice
             if(!novoUsuario.getEmail().equals(usuarioAntigo.getEmail())) {
-                indiceIndiretoEmail.delete(ParEmailID.hash(usuarioAntigo.getEmail()));
+                // Cria um objeto temporário para calcular o hash do e-mail antigo
+                ParEmailID tempAntigo = new ParEmailID(usuarioAntigo.getEmail(), -1);
+                indiceIndiretoEmail.delete(tempAntigo.hashCode());
+                
                 indiceIndiretoEmail.create(new ParEmailID(novoUsuario.getEmail(), novoUsuario.getId()));
             }
             return true;
