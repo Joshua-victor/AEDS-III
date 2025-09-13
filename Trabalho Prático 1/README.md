@@ -90,7 +90,8 @@ A implementação do CRUD e das classes de usuario e lista a equipe conseguiu re
    ````
    SIM
    ````
--Link do video explicativo(https://youtu.be/xnOAi2CQIEc)
+## Link do video
+-Link do video explicativo (https://youtu.be/xnOAi2CQIEc)
 
 
 ## FIM
