@@ -1,6 +1,6 @@
 /*********
  * ARVORE B+ 
- * 
+ *  
  * Os nomes dos métodos foram mantidos em inglês
  * apenas para manter a coerência com o resto da
  * disciplina:
@@ -828,5 +828,6 @@ private ArrayList<T> read1(T elem, long pagina) throws Exception {
             print1(pa.filhos.get(i));
         }
     }
+
 
 }
