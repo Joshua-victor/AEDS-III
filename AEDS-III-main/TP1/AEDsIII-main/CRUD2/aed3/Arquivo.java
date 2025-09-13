@@ -1,15 +1,13 @@
 package aed3;
-
-
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 
 public class Arquivo<T extends Registro> {
     final int TAM_CABECALHO = 12;
-    RandomAccessFile arquivo;
+    protected RandomAccessFile arquivo;
     String nomeArquivo;
-    Constructor<T> construtor;
+    protected Constructor<T> construtor;
     HashExtensivel<ParIDEndereco> indiceDireto;
 
     public Arquivo(String na, Constructor<T> c) throws Exception {
@@ -245,6 +243,4 @@ public class Arquivo<T extends Registro> {
         arquivo.close();
         indiceDireto.close();
     }
-
-
 }
