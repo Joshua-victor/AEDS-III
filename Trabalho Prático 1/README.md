@@ -1,4 +1,4 @@
-# Trabalho Pratico AEDs 3 - Parte 1
+# Trabalho Pratico 1 AEDs 3 - Relatório
 
 ## Integrantes
 
