@@ -4,6 +4,7 @@
 
 - [Joshua Victor Costa e Pereira](https://github.com/Joshua-victor)
 - [Gabriel Filipe Lanza Candido](https://github.com/biellanzac)
+- [Pedro Henrique Pereira de Alexandria](https://github.com/AlexandriaPedro)
 
 ## Descrição
 
