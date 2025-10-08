@@ -2,7 +2,7 @@ import aed3.*;
 import java.util.ArrayList;
 
 public class ArquivoLista extends aed3.Arquivo<Lista> {
-    
+
     // Usaremos a Árvore B+ como índice para o relacionamento 1:N
     // O índice irá armazenar pares (idUsuario, idLista)
     private ArvoreBMais<ParIDListaIDUsuario> indiceListas;
@@ -10,12 +10,12 @@ public class ArquivoLista extends aed3.Arquivo<Lista> {
     public ArquivoLista() throws Exception {
         // O nome do arquivo e o construtor da entidade (Lista)
         super("listas", Lista.class.getConstructor());
-        
+
         // Inicializa a Árvore B+
         indiceListas = new ArvoreBMais<>(
-            ParIDListaIDUsuario.class.getConstructor(), 
-            10, // Ordem da árvore, ajustável se necessário
-            ".\\dados\\listas\\listas-rel.db"
+            ParIDListaIDUsuario.class.getConstructor(),
+            8,
+            ".\\dados\\listas\\indiceListas.db"
         );
     }
 
@@ -23,13 +23,11 @@ public class ArquivoLista extends aed3.Arquivo<Lista> {
     public int create(Lista obj) throws Exception {
         // Cria a lista no arquivo principal e obtém o ID
         int id = super.create(obj);
-        
-        // Adiciona o par (idUsuario, idLista) no índice da Árvore B+
-        indiceListas.create(new ParIDListaIDUsuario(obj.getIdUsuario(), id));
-        System.out.println(obj);
 
-        System.out.println(id);
-        
+        // Adiciona o par (idUsuario, idLista) no índice da Árvore B+
+        indiceListas.create(new ParIDListaIDUsuario(obj.idUsuario, id));
+
+        // (removidos prints de debug para não exibir IDs ao usuário)
         return id;
     }
 
@@ -37,7 +35,7 @@ public class ArquivoLista extends aed3.Arquivo<Lista> {
     public Lista[] readByUserId(int idUsuario) throws Exception {
         // Cria um objeto de busca com o idUsuario para encontrar as listas
         ParIDListaIDUsuario p = new ParIDListaIDUsuario(idUsuario, -1);
-        
+
         // Usa o método read() da ArvoreBMais para buscar todos os pares que
         // têm o mesmo idUsuario.
         ArrayList<ParIDListaIDUsuario> pares = indiceListas.read(p);
@@ -52,7 +50,8 @@ public class ArquivoLista extends aed3.Arquivo<Lista> {
         
         // Percorre a lista de pares e busca cada lista no arquivo principal
         for (int i = 0; i < pares.size(); i++) {
-            listas[i] = super.read(pares.get(i).idLista);
+            int idLista = pares.get(i).idLista;
+            listas[i] = super.read(idLista);
         }
         
         return listas;
@@ -66,12 +65,18 @@ public class ArquivoLista extends aed3.Arquivo<Lista> {
             // Se o registro for excluído do arquivo principal,
             if (super.delete(id)) {
                 // Remove o par (idUsuario, idLista) do índice da Árvore B+
-                return indiceListas.delete(new ParIDListaIDUsuario(l.getIdUsuario(), id));
+                return indiceListas.delete(new ParIDListaIDUsuario(l.idUsuario, id));
             }
         }
         return false;
     }
-    
+
+    /**
+     * Busca sequencial por código compartilhável.
+     * Mantém o padrão do seu Arquivo base:
+     *  - cabeçalho 12 bytes
+     *  - cada registro: lápide(1) + tamanho(2) + dados(tamanho)
+     */
     public Lista readByCode(String code) throws Exception {
         // Aqui, a forma mais simples de implementar a busca por código é com uma busca sequencial.
         // O trabalho prático sugere o uso de um índice, mas a implementação de um novo índice
@@ -83,22 +88,47 @@ public class ArquivoLista extends aed3.Arquivo<Lista> {
             this.arquivo.seek(pos);
             byte lapide = this.arquivo.readByte();
             short tamanho = this.arquivo.readShort();
-            
-            if(lapide == ' ') {
+
+            if (lapide == ' ') { // registro válido
                 byte[] dados = new byte[tamanho];
                 this.arquivo.read(dados);
+
                 Lista lista = this.construtor.newInstance();
                 lista.fromByteArray(dados);
-                
-                if(lista.getCodigoCompartilhavel().equals(code)) {
+
+                if (code.equals(lista.codigoCompartilhavel)) {
                     return lista;
                 }
             } else {
+                // registro excluído (lápide != ' ')
                 this.arquivo.skipBytes(tamanho);
             }
             pos = this.arquivo.getFilePointer();
         }
         
         return null;
+    }
+
+    /**
+     * Atualiza a lista no arquivo principal e sincroniza o índice B+
+     * caso o dono (idUsuario) seja alterado.
+     */
+    public boolean update(Lista nova) throws Exception {
+        // Lê a versão antiga para verificar se houve troca de dono
+        Lista antiga = super.read(nova.id);
+        if (antiga == null) return false;
+
+        // Atualiza o registro no arquivo principal (preserva layout binário)
+        boolean ok = super.update(nova);
+
+        if (ok) {
+            // Se o idUsuario mudou, reflete no índice B+
+            if (antiga.idUsuario != nova.idUsuario) {
+                // Remove par antigo e cria o novo
+                indiceListas.delete(new ParIDListaIDUsuario(antiga.idUsuario, nova.id));
+                indiceListas.create(new ParIDListaIDUsuario(nova.idUsuario, nova.id));
+            }
+        }
+        return ok;
     }
 }

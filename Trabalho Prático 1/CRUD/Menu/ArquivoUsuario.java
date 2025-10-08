@@ -91,4 +91,10 @@ public class ArquivoUsuario extends aed3.Arquivo<Usuario> {
         }
         return false;
     }
+
+
+    public Usuario read(int id) throws Exception {
+        // leitura direta por ID usando a funcionalidade da classe base
+        return super.read(id);
+    }
 }
