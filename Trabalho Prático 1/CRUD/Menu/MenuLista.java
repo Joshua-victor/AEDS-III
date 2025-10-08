@@ -1,118 +1,164 @@
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
-//import aed3.ArvoreBMais;
 
 public class MenuLista {
-    
-    private static Scanner console = new Scanner(System.in);
-    private ArquivoLista arqLista;
-    private Usuario usuarioAtivo; 
+
+    private final Scanner console = new Scanner(System.in);
+    private final ArquivoLista arqLista;
+    private final ArquivoUsuario arqUsuario;
+    private final Usuario usuarioAtivo;
 
     public MenuLista(Usuario usuarioAtivo) throws Exception {
         this.arqLista = new ArquivoLista();
+        this.arqUsuario = new ArquivoUsuario();
         this.usuarioAtivo = usuarioAtivo;
     }
 
     public void menu() {
-        if (usuarioAtivo == null) {
-            System.out.println("Nenhum usuário logado. Retornando ao menu principal.");
-            return;
-        }
-
         int opcao;
         do {
-            System.out.println("\n\nAEDsIII");
-            System.out.println("-------");
-            System.out.println("> Início > Minhas listas");
-            System.out.println("\n1 - Listar minhas listas");
-            System.out.println("2 - Incluir nova lista");
-            System.out.println("3 - Alterar dados da lista");
-            System.out.println("4 - Excluir lista");
-            System.out.println("0 - Voltar");
+            System.out.println("\n=== Minhas Listas ===");
+            System.out.println("1) Listar minhas listas");
+            System.out.println("2) Incluir nova lista");
+            System.out.println("3) Alterar minha lista");
+            System.out.println("4) Desativar/Excluir minha lista");
+            System.out.println("5) Buscar lista de outro usuário por código");
+            System.out.println("0) Voltar");
+            System.out.print("> ");
+            String s = console.nextLine();
+            opcao = s.isEmpty() ? -1 : Integer.parseInt(s);
 
-            System.out.print("\nOpção: ");
             try {
-                opcao = Integer.valueOf(console.nextLine());
-            } catch(NumberFormatException e) {
-                opcao = -1;
-            }
-
-            switch (opcao) {
-                case 1:
-                    listarListas();
-                    break;
-                case 2:
-                    incluirLista();
-                    break;
-                case 3:
-                    //alterarLista();
-                    System.out.println("Funcionalidade em desenvolvimento");
-                    break;
-                case 4:
-                    //excluirLista();
-                    System.out.println("Funcionalidade em desenvolvimento");
-                    break;
-                case 0:
-                    break;
-                default:
-                    System.out.println("Opção inválida!");
-                    break;
+                switch (opcao) {
+                    case 1 -> listarListas();
+                    case 2 -> incluirLista();
+                    case 3 -> alterarLista();
+                    case 4 -> desativarLista();
+                    case 5 -> buscarListaOutroUsuario();
+                    case 0 -> { /* voltar */ }
+                    default -> System.out.println("Opção inválida.");
+                }
+            } catch (Exception e) {
+                System.out.println("Erro: " + e.getMessage());
             }
         } while (opcao != 0);
     }
-    
-    private void listarListas() {
-        System.out.println("\nListas de " + usuarioAtivo.nome + ":");
-        System.out.println("--------------------------------------");
-        try {
-            Lista[] listas = arqLista.readByUserId(usuarioAtivo.getId());
-            if (listas.length == 0) {
-                System.out.println("Nenhuma lista encontrada.");
-                return;
-            }
-            for (Lista l : listas) {
-                System.out.println(l);
-            }
-        } catch (Exception e) {
-            System.out.println("Erro ao listar as listas.");
-            e.printStackTrace();
+
+    private void listarListas() throws Exception {
+        Lista[] listas = arqLista.readByUserId(usuarioAtivo.id);
+        System.out.println("\n=== Suas Listas ===");
+        if (listas.length == 0) {
+            System.out.println("(vazio)");
+            return;
+        }
+        int i = 1;
+        for (Lista l : listas) {
+            System.out.printf("%d) Nome: %s | Descrição: %s | Código: %s | Criada: %s%n",
+                i++,
+                l.nome,
+                l.descricao,
+                l.codigoCompartilhavel,
+                formatarData(l.dataCriacao));
         }
     }
 
-    private void incluirLista() {
-    System.out.println("\nInclusão de nova lista");
-    System.out.print("\nNome da lista: ");
-    String nome = console.nextLine();
+    private void incluirLista() throws Exception {
+        System.out.println("\n=== Nova Lista ===");
+        System.out.print("Nome: ");
+        String nome = console.nextLine();
+        System.out.print("Descrição: ");
+        String descricao = console.nextLine();
+        System.out.print("Data limite (yyyy-MM-dd) (enter p/ sem): ");
+        String dl = console.nextLine();
 
-    System.out.print("Descrição detalhada: ");
-    String descricao = console.nextLine();
-    
-    // --- VALOR ARBITRADO AQUI ---
-    // Define a data limite fixa para 31 de Dezembro de 2025.
-    // O programa não irá mais pedir a data para o usuário.
-    LocalDate dataLimite = LocalDate.of(2025, 12, 31);
-    System.out.println("Usando data limite padrão: " + dataLimite.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        Long dataLimiteEpochDay = -1L;
+        if (!dl.isEmpty()) dataLimiteEpochDay = LocalDate.parse(dl).toEpochDay();
 
-    
-    String codigoCompartilhavel = gerarNanoId();
+        Lista l = new Lista();
+        l.nome = nome;
+        l.descricao = descricao;
+        l.dataCriacao = LocalDate.now().toEpochDay(); // epoch day
+        l.dataLimite = (dataLimiteEpochDay == null ? -1L : dataLimiteEpochDay);
+        l.codigoCompartilhavel = gerarNanoId();
+        l.idUsuario = usuarioAtivo.id;
 
-    System.out.print("\nConfirma a inclusão da lista? (S/N) ");
-    char resp = console.nextLine().charAt(0);
-    if(resp == 'S' || resp == 's') {
-        try {
-            Lista l = new Lista(-1, nome, descricao, LocalDate.now(), dataLimite, codigoCompartilhavel, usuarioAtivo.getId());
-            arqLista.create(l);
-            System.out.println("Lista '" + nome + "' incluída com sucesso.");
-            System.out.println("Dados" + l);
-        } catch(Exception e) {
-            System.out.println("Erro do sistema. Não foi possível incluir a lista!");
-            e.printStackTrace();
-        }
+        arqLista.create(l);
+        System.out.println("Lista criada com sucesso. Código: " + l.codigoCompartilhavel);
     }
-}
-    
-    
+
+    private void alterarLista() throws Exception {
+        System.out.println("\n=== Alterar minha lista ===");
+        System.out.print("Informe o CÓDIGO da lista: ");
+        String code = console.nextLine();
+        Lista l = arqLista.readByCode(code);
+        if (l == null || l.idUsuario != usuarioAtivo.id) {
+            System.out.println("Lista não encontrado ou não pertence a você.");
+            return;
+        }
+
+        System.out.print("Nome atual: " + l.nome + " | Novo nome (enter p/ manter): ");
+        String nome = console.nextLine();
+        if (!nome.isEmpty()) l.nome = nome;
+
+        System.out.print("Descrição atual: " + l.descricao + " | Nova descrição (enter p/ manter): ");
+        String desc = console.nextLine();
+        if (!desc.isEmpty()) l.descricao = desc;
+
+        System.out.print("Data limite atual: " + (l.dataLimite == -1 ? "-" : LocalDate.ofEpochDay(l.dataLimite)) + " | Nova (yyyy-MM-dd, enter p/ manter/limpar): ");
+        String dl = console.nextLine();
+        if (!dl.isEmpty()) {
+            if (dl.equalsIgnoreCase("limpar")) {
+                l.dataLimite = -1L;
+            } else {
+                l.dataLimite = LocalDate.parse(dl).toEpochDay();
+            }
+        }
+
+        boolean ok = arqLista.update(l);
+        System.out.println(ok ? "Lista atualizada." : "Nada foi alterado.");
+    }
+
+    private void desativarLista() throws Exception {
+        System.out.println("\n=== Desativar/Excluir minha lista ===");
+        System.out.print("Informe o CÓDIGO da lista: ");
+        String code = console.nextLine();
+        Lista l = arqLista.readByCode(code);
+        if (l == null || l.idUsuario != usuarioAtivo.id) {
+            System.out.println("Lista não encontrada ou não pertence a você.");
+            return;
+        }
+        boolean ok = arqLista.delete(l.id);
+        System.out.println(ok ? "Lista desativada." : "Falha ao desativar.");
+    }
+
+    private void buscarListaOutroUsuario() throws Exception {
+        System.out.println("\n=== Buscar lista de outro usuário ===");
+        System.out.print("Código compartilhável: ");
+        String codigo = console.nextLine();
+
+        Lista lista = arqLista.readByCode(codigo);
+        if (lista == null) {
+            System.out.println("Nenhuma lista encontrada com este código.");
+            return;
+        }
+        // Buscar nome do dono (sem exibir ID)
+        Usuario dono = arqUsuario.read(lista.idUsuario);
+        String nomeDono = (dono == null ? "(desconhecido)" : dono.nome);
+
+        System.out.println("\nLista encontrada:");
+        System.out.println("Nome da lista....: " + lista.nome);
+        System.out.println("Descrição........: " + lista.descricao);
+        System.out.println("Código...........: " + lista.codigoCompartilhavel);
+        System.out.println("Dono.............: " + nomeDono);
+        System.out.println("Criada em........: " + formatarData(lista.dataCriacao));
+        System.out.println("Data limite......: " + (lista.dataLimite == -1 ? "-" : LocalDate.ofEpochDay(lista.dataLimite)));
+    }
+
+    private String formatarData(long epochDay) {
+        return LocalDate.ofEpochDay(epochDay).format(DateTimeFormatter.ISO_DATE);
+    }
+
     private String gerarNanoId() {
         String alfabeto = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         StringBuilder sb = new StringBuilder();
