@@ -1,66 +1,85 @@
-package Menu;
-
-import aed3.*;
+import aed3.Arquivo;
+import aed3.ArvoreBMais;
 import java.util.ArrayList;
+import aed3.ParIDListaIDListaProduto;     // >>> necessário
+import aed3.ParIDProdutoIDListaProduto; 
 
 public class ArquivoListaProduto extends Arquivo<ListaProduto> {
-    private ArvoreBMais<ParIDListaIDListaProduto> indicePorLista;
-    private ArvoreBMais<ParIDProdutoIDListaProduto> indicePorProduto;
+
+    private final ArvoreBMais<ParIDListaIDListaProduto> indicePorLista;
+    private final ArvoreBMais<ParIDProdutoIDListaProduto> indicePorProduto;
 
     public ArquivoListaProduto() throws Exception {
-        super(ListaProduto.class.getConstructor(),
-             ".\\dados\\listas_produtos\\listas_produtos.db");
-        this.indicePorLista = new ArvoreBMais<>(ParIDListaIDListaProduto.class.getConstructor(),
-             ".\\dados\\listas_produtos\\idx_lista.d.db",
-             ".\\dados\\listas_produtos\\idx_lista.c.db");
-        this.indicePorProduto = new ArvoreBMais<>(ParIDProdutoIDListaProduto.class.getConstructor(),
-             ".\\dados\\listas_produtos\\idx_produto.d.db",
-             ".\\dados\\listas_produtos\\idx_produto.c.db");
+        super("listas_produtos", ListaProduto.class.getConstructor());
+        indicePorLista = new ArvoreBMais<>(
+            ParIDListaIDListaProduto.class.getConstructor(),
+            5,
+            ".\\dados\\listas_produtos\\idx_lista.db"
+        );
+        indicePorProduto = new ArvoreBMais<>(
+            ParIDProdutoIDListaProduto.class.getConstructor(),
+            5,
+            ".\\dados\\listas_produtos\\idx_produto.db"
+        );
     }
 
+    @Override
     public int create(ListaProduto lp) throws Exception {
         int id = super.create(lp);
+        // insere nas duas B+
         indicePorLista.create(new ParIDListaIDListaProduto(lp.getIdLista(), id));
         indicePorProduto.create(new ParIDProdutoIDListaProduto(lp.getIdProduto(), id));
         return id;
     }
 
+    @Override
     public boolean update(ListaProduto lp) throws Exception {
         ListaProduto old = super.read(lp.getId());
         if (old == null) return false;
+
+        boolean movedLista = old.getIdLista()!= lp.getIdLista();
+        boolean movedProd = old.getIdProduto() != lp.getIdProduto();
+
         boolean ok = super.update(lp);
-        if (ok && (old.getIdLista() != lp.getIdLista() || old.getIdProduto() != lp.getIdProduto())) {
-            indicePorLista.delete(old.getIdLista(), new ParIDListaIDListaProduto(old.getIdLista(), lp.getId()));
-            indicePorProduto.delete(old.getIdProduto(), new ParIDProdutoIDListaProduto(old.getIdProduto(), lp.getId()));
-            indicePorLista.create(new ParIDListaIDListaProduto(lp.getIdLista(), lp.getId()));
-            indicePorProduto.create(new ParIDProdutoIDListaProduto(lp.getIdProduto(), lp.getId()));
+
+        if (ok) {
+            if (movedLista) {
+                indicePorLista.delete(new ParIDListaIDListaProduto(old.getIdLista(), lp.getId()));
+                indicePorLista.create(new ParIDListaIDListaProduto(lp.getIdLista(), lp.getId()));
+            }
+            if (movedProd) {
+                indicePorProduto.delete(new ParIDProdutoIDListaProduto(old.getIdProduto(), lp.getId()));
+                indicePorProduto.create(new ParIDProdutoIDListaProduto(lp.getIdProduto(), lp.getId()));
+            }
         }
         return ok;
     }
 
+    @Override
     public boolean delete(int id) throws Exception {
         ListaProduto lp = super.read(id);
         if (lp == null) return false;
         boolean ok = super.delete(id);
         if (ok) {
-            indicePorLista.delete(lp.getIdLista(), new ParIDListaIDListaProduto(lp.getIdLista(), id));
-            indicePorProduto.delete(lp.getIdProduto(), new ParIDProdutoIDListaProduto(lp.getIdProduto(), id));
+            indicePorLista.delete(new ParIDListaIDListaProduto(lp.getIdLista(), id));
+            indicePorProduto.delete(new ParIDProdutoIDListaProduto(lp.getIdProduto(), id));
         }
         return ok;
     }
 
-    public java.util.List<Integer> listarIdsPorLista(int idLista) throws Exception {
-        java.util.ArrayList<Integer> ids = new java.util.ArrayList<>();
-        for (ParIDListaIDListaProduto par : indicePorLista.readAll(new ParIDListaIDListaProduto(idLista, -1))) {
-            ids.add(par.getIdListaProduto());
-        }
-        return ids;
+    /** Retorna IDs de ListaProduto para uma lista específica (via B+). */
+    public ArrayList<Integer> listarIdsPorLista(int idLista) throws Exception {
+        ArrayList<Integer> out = new ArrayList<>();
+        ArrayList<ParIDListaIDListaProduto> pares = indicePorLista.read(new ParIDListaIDListaProduto(idLista, -1));
+        for (ParIDListaIDListaProduto p : pares) out.add(p.getIdListaProduto());
+        return out;
     }
-    public java.util.List<Integer> listarIdsPorProduto(int idProduto) throws Exception {
-        java.util.ArrayList<Integer> ids = new java.util.ArrayList<>();
-        for (ParIDProdutoIDListaProduto par : indicePorProduto.readAll(new ParIDProdutoIDListaProduto(idProduto, -1))) {
-            ids.add(par.getIdListaProduto());
-        }
-        return ids;
+
+    /** Retorna IDs de ListaProduto para um produto específico (via B+). */
+    public ArrayList<Integer> listarIdsPorProduto(int idProduto) throws Exception {
+        ArrayList<Integer> out = new ArrayList<>();
+        ArrayList<ParIDProdutoIDListaProduto> pares = indicePorProduto.read(new ParIDProdutoIDListaProduto(idProduto, -1));
+        for (ParIDProdutoIDListaProduto p : pares) out.add(p.getIdListaProduto());
+        return out;
     }
 }

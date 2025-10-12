@@ -1,5 +1,3 @@
-package Menu;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -133,9 +131,9 @@ public class MenuProduto {
                     if (l.getIdUsuario() == usuarioLogado.getId()) minhas.add(l);
                     else outras++;
                 }
-                minhas.sort(Comparator.comparing(Lista::getNome, String.CASE_INSENSITIVE_ORDER));
+                minhas.sort(Comparator.comparing(l -> l.nome, String.CASE_INSENSITIVE_ORDER));
                 System.out.println("\nAparece nas minhas listas:");
-                for (Lista l : minhas) System.out.println("- " + l.getNome());
+                for (Lista l : minhas) System.out.println("- " + l.nome);
                 System.out.println("Também aparece em " + outras + " lista(s) de outras pessoas.");
 
                 System.out.println("\n(1) Alterar");

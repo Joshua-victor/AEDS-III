@@ -1,7 +1,6 @@
-package Menu;
-
+import aed3.Registro;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.StandardCharsets; 
 
 public class ListaProduto implements Registro {
     private int id;

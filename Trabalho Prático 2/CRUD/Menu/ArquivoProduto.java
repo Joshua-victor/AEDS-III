@@ -1,62 +1,97 @@
-package Menu;
-
-import aed3.*;
+import aed3.Arquivo;
+import aed3.HashExtensivel;
+import aed3.ParGtinID; 
 
 public class ArquivoProduto extends Arquivo<Produto> {
 
-    private HashExtensivel<ParGtinID> indiceGtin;
+    private final HashExtensivel<ParGtinID> indiceGtin;
 
     public ArquivoProduto() throws Exception {
-        super(Produto.class.getConstructor(),
-              ".\\dados\\produtos\\produtos.db");
-        this.indiceGtin = new HashExtensivel<>(ParGtinID.class.getConstructor(),
-                ".\\dados\\produtos\\indiceGtin.d.db",
-                ".\\dados\\produtos\\indiceGtin.c.db");
+        super("produtos", Produto.class.getConstructor()); // conforme Arquivo(String, Constructor<T>)
+        this.indiceGtin = new HashExtensivel<>(
+            ParGtinID.class.getConstructor(),
+            4,
+            ".\\dados\\produtos\\gtin.d.db",
+            ".\\dados\\produtos\\gtin.c.db"
+        );
     }
 
+    @Override
     public int create(Produto p) throws Exception {
-        ParGtinID probe = new ParGtinID(p.getGtin13(), -1);
-        ParGtinID found = indiceGtin.read(probe.hashCode(), probe);
-        if (found != null && found.getGtin13().equals(p.getGtin13()))
-            throw new IllegalArgumentException("GTIN-13 já cadastrado: " + p.getGtin13());
-
+        // GTIN único
+        ParGtinID probe = indiceGtin.read(p.getGtin13().hashCode());
+        if (probe != null) {
+            throw new Exception("GTIN-13 já cadastrado.");
+        }
         int id = super.create(p);
         indiceGtin.create(new ParGtinID(p.getGtin13(), id));
         return id;
     }
 
+    @Override
     public boolean update(Produto p) throws Exception {
         Produto old = super.read(p.getId());
         if (old == null) return false;
+
+        // se trocou GTIN, atualiza índice
         if (!old.getGtin13().equals(p.getGtin13())) {
-            ParGtinID probe = new ParGtinID(p.getGtin13(), -1);
-            ParGtinID dup = indiceGtin.read(probe.hashCode(), probe);
-            if (dup != null && dup.getGtin13().equals(p.getGtin13()))
-                throw new IllegalArgumentException("GTIN-13 já cadastrado: " + p.getGtin13());
-            indiceGtin.delete(old.getGtin13().hashCode(), new ParGtinID(old.getGtin13(), old.getId()));
+            // não permitir duplicar GTIN
+            ParGtinID dup = indiceGtin.read(p.getGtin13().hashCode());
+            if (dup != null) throw new Exception("GTIN-13 já cadastrado para outro produto.");
+
+            // remove o antigo e insere o novo
+            indiceGtin.delete(old.getGtin13().hashCode());
             indiceGtin.create(new ParGtinID(p.getGtin13(), p.getId()));
         }
+
         return super.update(p);
     }
 
+    @Override
     public boolean delete(int id) throws Exception {
         Produto p = super.read(id);
         if (p == null) return false;
+
+        // regra do TP2: não vamos excluir produto por padrão (usar inativar).
+        // Se ainda assim precisar, mantemos índice consistente:
         boolean ok = super.delete(id);
         if (ok) {
-            indiceGtin.delete(p.getGtin13().hashCode(), new ParGtinID(p.getGtin13(), id));
+            indiceGtin.delete(p.getGtin13().hashCode());
         }
         return ok;
     }
 
-    public Produto readByGTIN(String gtin13) throws Exception {
-        ParGtinID out = indiceGtin.read(gtin13.hashCode(), new ParGtinID(gtin13, -1));
-        if (out == null) return null;
-        return super.read(out.getId());
+    /** Lista todos os IDs percorrendo o arquivo base. Útil para paginação/menus. */
+    public java.util.ArrayList<Integer> listAllIds() throws Exception {
+        java.util.ArrayList<Integer> out = new java.util.ArrayList<>();
+        // percorre usando o índice direto (id -> endereço) não está exposto publicamente,
+        // então vamos varrer o arquivo físico como em Arquivo.create/update.
+        java.io.RandomAccessFile raf = this.arquivo; // protegido em Arquivo<T>
+        raf.seek(0);
+        raf.readInt(); // pula último ID
+        long listaExcluidos = raf.readLong(); // não usado aqui
+        long pos = raf.getFilePointer();
+        while (pos < raf.length()) {
+            raf.seek(pos);
+            byte lapide = raf.readByte();
+            short tam = raf.readShort();
+            long registroPos = pos + 3;
+            if (lapide == ' ') {
+                byte[] b = new byte[tam];
+                raf.readFully(b);
+                Produto px = Produto.class.getConstructor().newInstance();
+                px.fromByteArray(b);
+                out.add(px.getId());
+            }
+            pos = registroPos + tam;
+        }
+        return out;
     }
 
-    // utilitário para listagem
-    public int[] listAllIds() throws Exception {
-        return super.listAllIds();
+    /** Leitura por GTIN-13 via índice hash. */
+    public Produto readByGTIN(String gtin13) throws Exception {
+        ParGtinID par = indiceGtin.read(gtin13.hashCode());
+        if (par == null) return null;
+        return super.read(par.getId());
     }
 }

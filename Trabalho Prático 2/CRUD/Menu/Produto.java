@@ -1,5 +1,4 @@
-package Menu;
-
+import aed3.Registro;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 

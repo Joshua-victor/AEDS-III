@@ -5,10 +5,14 @@ public class Principal {
     private static final Scanner console = new Scanner(System.in);
     private static ArquivoUsuario arqUsuario;
     private static Usuario usuarioAtivo = null;
+    private static ArquivoProduto arqProduto;
+    private static ArquivoListaProduto arqListaProduto;
 
     public static void main(String[] args) {
         try {
             arqUsuario = new ArquivoUsuario();
+            arqProduto = new ArquivoProduto();
+            arqListaProduto = new ArquivoListaProduto();
             int opcao;
             while (true) {
                 if (usuarioAtivo == null) {
@@ -25,6 +29,7 @@ public class Principal {
                         case 1 -> abrirMeuUsuario();
                         case 2 -> abrirMinhasListas();
                         case 3 -> buscarListaOutroUsuario();
+                        case 4 -> abrirProdutos();
                         case 9 -> usuarioAtivo = null; // sair da sessão
                         case 0 -> { System.out.println("Saindo..."); return; }
                         default -> System.out.println("Opção inválida.");
@@ -51,6 +56,7 @@ public class Principal {
         System.out.println("1) Meu usuário");
         System.out.println("2) Minhas listas");
         System.out.println("3) Buscar lista por código (de outro usuário)");
+        System.out.println("4) Produtos");      
         System.out.println("9) Sair da sessão");
         System.out.println("0) Fechar programa");
         System.out.print("> ");
@@ -128,5 +134,16 @@ public class Principal {
         } else {
             System.out.println("Nenhuma lista encontrada com este código.");
         }
+    }
+
+    private static void abrirProdutos() throws Exception {
+        MenuProduto mp = new MenuProduto(
+            usuarioAtivo,
+            arqProduto,
+            arqListaProduto,
+            new ArquivoLista(),
+            arqUsuario
+        );
+        mp.abrir();
     }
 }

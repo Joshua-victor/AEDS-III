@@ -8,11 +8,15 @@ public class MenuLista {
     private final ArquivoLista arqLista;
     private final ArquivoUsuario arqUsuario;
     private final Usuario usuarioAtivo;
+    private final ArquivoListaProduto arqListaProduto;
+    private final ArquivoProduto arqProduto;
 
     public MenuLista(Usuario usuarioAtivo) throws Exception {
         this.arqLista = new ArquivoLista();
         this.arqUsuario = new ArquivoUsuario();
         this.usuarioAtivo = usuarioAtivo;
+        this.arqListaProduto = new ArquivoListaProduto();
+        this.arqProduto = new ArquivoProduto();
     }
 
     public void menu() {
@@ -24,6 +28,8 @@ public class MenuLista {
             System.out.println("3) Alterar minha lista");
             System.out.println("4) Desativar/Excluir minha lista");
             System.out.println("5) Buscar lista de outro usuário por código");
+            System.out.println("6) Gerenciar produtos da lista");   // TP2 (nova)
+            System.out.println("7) Acrescentar produto à lista");
             System.out.println("0) Voltar");
             System.out.print("> ");
             String s = console.nextLine();
@@ -36,6 +42,8 @@ public class MenuLista {
                     case 3 -> alterarLista();
                     case 4 -> desativarLista();
                     case 5 -> buscarListaOutroUsuario();
+                    case 6 -> gerenciarProdutosDaLista();    // TP2 (novo)
+                    case 7 -> acrescentarProdutoNaLista();  
                     case 0 -> { /* voltar */ }
                     default -> System.out.println("Opção inválida.");
                 }
@@ -128,8 +136,14 @@ public class MenuLista {
             System.out.println("Lista não encontrada ou não pertence a você.");
             return;
         }
+
+        var idsLP = arqListaProduto.listarIdsPorLista(l.id);
+        for (int idLP : idsLP) {
+            arqListaProduto.delete(idLP); // limpa as duas B+ por trás
+        }
+
         boolean ok = arqLista.delete(l.id);
-        System.out.println(ok ? "Lista desativada." : "Falha ao desativar.");
+        System.out.println(ok ? "Lista desativada (e associações removidas)." : "Falha ao desativar.");
     }
 
     private void buscarListaOutroUsuario() throws Exception {
@@ -167,5 +181,176 @@ public class MenuLista {
             sb.append(alfabeto.charAt(random.nextInt(alfabeto.length())));
         }
         return sb.toString();
+    }
+
+    private void gerenciarProdutosDaLista() throws Exception {
+        System.out.println("\n=== Gerenciar produtos da lista ===");
+        System.out.print("Informe o CÓDIGO da lista: ");
+        String code = console.nextLine();
+        Lista lista = arqLista.readByCode(code);
+        if (lista == null || lista.idUsuario != usuarioAtivo.id) {
+            System.out.println("Lista não encontrada ou não pertence a você.");
+            return;
+        }
+
+        var idsLP = arqListaProduto.listarIdsPorLista(lista.id);
+        java.util.ArrayList<ListaProduto> itens = new java.util.ArrayList<>();
+        for (int idLP : idsLP) {
+            ListaProduto lp = arqListaProduto.read(idLP);
+            if (lp != null) itens.add(lp);
+        }
+        itens.sort(java.util.Comparator.comparing(lp -> {
+            try {
+                Produto p = arqProduto.read(lp.getIdProduto());
+                return p == null ? "" : p.getNome();
+            } catch (Exception e) { return ""; }
+        }, String.CASE_INSENSITIVE_ORDER));
+
+        if (itens.isEmpty()) {
+            System.out.println("Esta lista não possui produtos.");
+            return;
+        }
+
+        while (true) {
+            System.out.println("\nLista: " + lista.nome + " — Produtos");
+            for (int i = 0; i < itens.size(); i++) {
+                ListaProduto lp = itens.get(i);
+                Produto p = arqProduto.read(lp.getIdProduto());
+                String nome = (p == null ? ("#"+lp.getIdProduto()) : p.getNome());
+                System.out.printf("(%d) %s (x%d)%n", i+1, nome, lp.getQuantidade());
+            }
+            System.out.println("(A) Alterar quantidade");
+            System.out.println("(O) Alterar observações");
+            System.out.println("(R) Remover produto desta lista");
+            System.out.println("(V) Voltar");
+            System.out.print("> ");
+            String op = console.nextLine().trim().toUpperCase();
+
+            if ("V".equals(op)) return;
+
+            if ("A".equals(op) || "O".equals(op) || "R".equals(op)) {
+                System.out.print("Selecione o índice do item: ");
+                String s = console.nextLine().trim();
+                int idx;
+                try { idx = Integer.parseInt(s) - 1; } catch (Exception e) { System.out.println("Índice inválido."); continue; }
+                if (idx < 0 || idx >= itens.size()) { System.out.println("Índice inválido."); continue; }
+                ListaProduto lp = itens.get(idx);
+
+                if ("A".equals(op)) {
+                    System.out.print("Nova quantidade (>=1): ");
+                    String q = console.nextLine().trim();
+                    int nq;
+                    try { nq = Math.max(1, Integer.parseInt(q)); } catch (Exception e) { System.out.println("Valor inválido."); continue; }
+                    lp.setQuantidade(nq);
+                    arqListaProduto.update(lp);
+                    System.out.println("Quantidade atualizada.");
+                } else if ("O".equals(op)) {
+                    System.out.print("Observações (enter para limpar): ");
+                    String o = console.nextLine();
+                    lp.setObservacoes(o);
+                    arqListaProduto.update(lp);
+                    System.out.println("Observações atualizadas.");
+                } else if ("R".equals(op)) {
+                    arqListaProduto.delete(lp.getId());
+                    itens.remove(idx);
+                    System.out.println("Produto removido desta lista.");
+                }
+            } else {
+                System.out.println("Opção inválida.");
+            }
+        }
+    }
+
+    
+    private void acrescentarProdutoNaLista() throws Exception {
+        System.out.println("\n=== Acrescentar produto à lista ===");
+        System.out.print("Informe o CÓDIGO da lista: ");
+        String code = console.nextLine();
+        Lista lista = arqLista.readByCode(code);
+        if (lista == null || lista.idUsuario != usuarioAtivo.id) {
+            System.out.println("Lista não encontrada ou não pertence a você.");
+            return;
+        }
+
+        while (true) {
+            System.out.println("(1) Buscar por GTIN-13");
+            System.out.println("(2) Listar produtos ATIVOS");
+            System.out.println("(V) Voltar");
+            System.out.print("> ");
+            String op = console.nextLine().trim().toUpperCase();
+            if ("V".equals(op)) return;
+
+            Produto escolhido = null;
+
+            if ("1".equals(op)) {
+                System.out.print("GTIN-13: ");
+                String g = console.nextLine().trim();
+                escolhido = arqProduto.readByGTIN(g);
+                if (escolhido == null) { System.out.println("Não encontrado."); continue; }
+                if (!escolhido.isAtivo()) { System.out.println("Produto INATIVO — não pode ser adicionado."); continue; }
+            } else if ("2".equals(op)) {
+                java.util.ArrayList<Produto> ativos = new java.util.ArrayList<>();
+                for (int id : arqProduto.listAllIds()) {
+                    Produto p = arqProduto.read(id);
+                    if (p != null && p.isAtivo()) ativos.add(p);
+                }
+                if (ativos.isEmpty()) { System.out.println("Nenhum produto ATIVO cadastrado."); continue; }
+                ativos.sort(java.util.Comparator.comparing(Produto::getNome, String.CASE_INSENSITIVE_ORDER));
+
+                int page = 0, pageSize = 10;
+                while (true) {
+                    int from = page * pageSize;
+                    int to = Math.min(from + pageSize, ativos.size());
+                    System.out.println("\nProdutos (ATIVOS) — página " + (page+1) + " de " + ((ativos.size()+9)/10));
+                    for (int i = from; i < to; i++) {
+                        System.out.printf("(%d) %s%n", (i - from + 1), ativos.get(i).getNome());
+                    }
+                    System.out.println("(A) Anterior  (P) Próxima  (R) Retornar  (número) Escolher");
+                    System.out.print("> ");
+                    String sel = console.nextLine().trim().toUpperCase();
+                    if ("R".equals(sel)) break;
+                    if ("A".equals(sel)) { if (page > 0) page--; continue; }
+                    if ("P".equals(sel)) { if (to < ativos.size()) page++; continue; }
+                    try {
+                        int k = Integer.parseInt(sel);
+                        if (k >= 1 && k <= (to - from)) {
+                            escolhido = ativos.get(from + k - 1);
+                            break;
+                        } else System.out.println("Índice inválido.");
+                    } catch (NumberFormatException nfe) {
+                        System.out.println("Opção inválida.");
+                    }
+                }
+                if (escolhido == null) continue;
+            } else {
+                System.out.println("Opção inválida.");
+                continue;
+            }
+
+            System.out.print("Quantidade (>=1): ");
+            int qtd = 1;
+            try { qtd = Math.max(1, Integer.parseInt(console.nextLine().trim())); } catch (Exception e) { qtd = 1; }
+
+            var idsLP = arqListaProduto.listarIdsPorLista(lista.id);
+            ListaProduto existente = null;
+            for (int idLP : idsLP) {
+                ListaProduto lp = arqListaProduto.read(idLP);
+                if (lp != null && lp.getIdProduto() == escolhido.getId()) { existente = lp; break; }
+            }
+            if (existente != null) {
+                existente.setQuantidade(existente.getQuantidade() + qtd);
+                arqListaProduto.update(existente);
+                System.out.println("Quantidade somada ao item existente.");
+            } else {
+                ListaProduto novo = new ListaProduto();
+                novo.setIdLista(lista.id);                // sua classe Lista usa campos públicos
+                novo.setIdProduto(escolhido.getId());
+                novo.setQuantidade(qtd);
+                novo.setObservacoes("");
+                arqListaProduto.create(novo);
+                System.out.println("Produto adicionado à lista.");
+            }
+            return;
+        }
     }
 }
