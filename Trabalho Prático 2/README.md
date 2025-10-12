@@ -111,8 +111,6 @@ java -cp out Principal
 - **Quantidade mínima**: `>= 1` ao adicionar/alterar.
 - **Cascade em Lista**: exclusão/desativação de uma **Lista** remove previamente todas as `ListaProduto` associadas.
 
-> Nota: validação do **dígito verificador** do EAN-13 é **opcional** (não exigida no enunciado).
-
 ---
 
 ## Evidências/prints
@@ -127,7 +125,7 @@ java -cp out Principal
 
 ---
 
-## Checklist (TP2 — exatamente como no enunciado)
+## Checklist
 
 - [x] **Há um CRUD de produtos** (que **estende a classe ArquivoIndexado**, acrescentando **Tabelas Hash Extensíveis** e **Árvores B+** como índices diretos e indiretos conforme necessidade) **que funciona corretamente?**  
   **SIM.** `ArquivoProduto` estende `Arquivo` e usa `HashExtensivel (GTIN→id)`; listagem ordenada e busca por GTIN implementadas.
@@ -156,7 +154,7 @@ java -cp out Principal
 ---
 
 ## Link do Vídeo (até 3 minutos)
-- `https://youtu.be/SEU_LINK_AQUI`
+- `https://youtu.be/NOSSO_LINK_AQUI`
 
 ---
 
