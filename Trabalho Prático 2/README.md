@@ -117,8 +117,6 @@ java -cp out Principal
 
 ## Evidências (incluir prints)
 
-> Coloque as imagens na pasta `docs/` e ajuste os nomes conforme seus arquivos.
-
 1. **Cadastro de Produto** — `docs/01_cadastro_produto.png`  
 2. **Listagem de Produtos (10/página)** — `docs/02_listagem_produtos.png`  
 3. **Busca por GTIN-13** — `docs/03_busca_gtin.png`  
