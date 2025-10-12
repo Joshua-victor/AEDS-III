@@ -115,7 +115,7 @@ java -cp out Principal
 
 ---
 
-## Evidências (incluir prints)
+## Evidências/prints
 
 1. **Cadastro de Produto** — `docs/01_cadastro_produto.png`  
 2. **Listagem de Produtos (10/página)** — `docs/02_listagem_produtos.png`  
