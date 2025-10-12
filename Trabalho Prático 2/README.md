@@ -1,98 +1,165 @@
-# Trabalho Pratico 1 AEDs 3 - Relatório
+# Trabalho Prático 2 – AEDs III — Relatório
 
 ## Integrantes
-
 - [Joshua Victor Costa e Pereira](https://github.com/Joshua-victor)
 - [Gabriel Filipe Lanza Candido](https://github.com/biellanzac)
 - [Pedro Henrique Pereira de Alexandria](https://github.com/AlexandriaPedro)
 
-## Descrição
+---
 
-O trabalho prático 1 é sobre a implementação de um sistema para gerenciar listas de presentes, chamado "Presente Fácil 1.0". O objetivo é que os usuários possam criar listas com produtos que gostariam de receber.
+## Descrição (TP2 — Presente Fácil 2.0)
 
-Cada tarefa possui os seguintes atributos:
+Este TP amplia o TP1 com a entidade **Produto** (identificado por **GTIN-13**) e o relacionamento **N:N** entre **Lista** e **Produto** via entidade **ListaProduto** (campos: `id`, `idLista`, `idProduto`, `quantidade`, `observacoes`).  
+Foram implementados **índices** para sustentar as consultas:
 
-Entidade Usuário: Deve ter atributos como nome, e-mail, hash de senha, pergunta e resposta secreta. O acesso é feito por e-mail e senha, e deve haver uma opção para cadastro de novos usuários.
+- **Hash Extensível**: `GTIN-13 → idProduto` (garante **unicidade** e **busca direta por GTIN-13**).
+- **Duas Árvores B+** (índices indiretos):
+  - `idLista → idListaProduto` (quais itens uma lista possui),
+  - `idProduto → idListaProduto` (em quais listas um produto aparece).
 
-Entidade Lista: Deve ter atributos como nome, descrição, data de criação e um código compartilhável.
+**Principais funcionalidades novas:**
+- CRUD de **Produto** (GTIN-13 único, nome, descrição, ativo/inativo).
+- **Buscar Produto por GTIN-13**.
+- **Listar Produtos** em **ordem alfabética**, com **10 por página**.
+- **Ficha do Produto**: exibe as **minhas listas** (ordenadas) onde ele aparece e a **contagem de listas de outros usuários** onde está presente.
+- **Gerenciar produtos da lista**: listar itens `Nome (xquantidade)`, **alterar quantidade**, **alterar observações**, **remover item**.
+- **Acrescentar produto à lista**: por **GTIN** ou **listando apenas os ATIVOS** (10/página).
+- **Cascade** ao excluir/desativar **Lista**: remove as associações `ListaProduto` antes de apagar a lista.
 
-Busca de Listas: É possível buscar listas de outras pessoas usando um código compartilhável (NanoID).
-
-Relacionamento e Busca: O sistema deve registrar o relacionamento 1:N entre usuários e listas usando uma Árvore B+.
-
-
-## Estrutura do Registro
-
-As operações de CRUD são realizadas por uma classe genérica `Principal` que pode manipular qualquer entidade que implemente a interface.
-
-### Índice Direto
-
-O projeto utiliza um índice direto baseado em tabela hash extensível para gerenciar os usuarios. Este índice armazena a chave (email), facilitando as operações de busca, inserção, atualização e exclusão.
+---
 
 ## Estrutura do Projeto
 
-### Classes Principais
+```
+/CRUD
+  /aed3
+    Arquivo.java
+    HashExtensivel.java
+    ArvoreBMais.java
+    ParGtinID.java
+    ParIDListaIDListaProduto.java
+    ParIDProdutoIDListaProduto.java
+    ... (outros utilitários de índice/registro)
+  /Menu
+    Principal.java
+    Usuario.java              / ArquivoUsuario.java
+    Lista.java                / ArquivoLista.java
+    Produto.java              / ArquivoProduto.java
+    ListaProduto.java         / ArquivoListaProduto.java
+    MenuUsuario.java / MenuLista.java / MenuProduto.java
+  /dados
+    /usuarios
+    /listas
+    /produtos
+    /listas_produtos
+```
+> Observação: arquivos do diretório `Menu/` estão no **pacote padrão** (sem `package`), compatível com os comandos de compilação abaixo.
 
-- Principal: Classe genérica que gerencia as operações de CRUD no arquivo de dados.
-- Usuario: Classe que representa a entidade usuario, implementando a interface de login/registro.
-- Lista: Classe que representa a entidade listas, implementando a interface de listas.
+---
 
-### Métodos Principais
+## Como compilar e executar
 
-- create: Insere um novo usuario no arquivo.
-- read: Lê uma lista do arquivo com base no ID e retorna o objeto correspondente.
-- update: Atualiza um usuario/lista existente no arquivo.
-- delete: Marca um registro como excluído no arquivo.
+### Windows (CMD/PowerShell)
+```bat
+chcp 65001
+javac -encoding UTF-8 -d out aed3\*.java
+javac -encoding UTF-8 -cp out -d out Menu\*.java
+java -cp out Principal
+```
+> Se `Principal.java` estiver com `package Menu;`, use: `java -cp out Menu.Principal`.
 
-## Experiência de Desenvolvimento
+### Linux/macOS
+```bash
+find aed3 -name "*.java" > s1.txt
+find Menu -name "*.java" > s2.txt
+javac -encoding UTF-8 -d out @s1.txt
+javac -encoding UTF-8 -cp out -d out @s2.txt
+java -cp out Principal
+```
 
-Durante o desenvolvimento do projeto, implementamos todas as funcionalidades básicas necessárias para o CRUD de tarefas. 
-A primeira etapa envolveu a implementação conjunta da classe usuario e lista, seguida pela atribuição das funções do CRUD à classe 
-Arquivo para cada membro da equipe.
+---
 
-A implementação do CRUD e das classes de usuario e lista a equipe conseguiu resolver sem muitas dificuldades.
+## Fluxo de Teste (roteiro rápido)
 
+1. **Produtos → Cadastrar**
+   - GTIN-13 exemplos: `7890000000017`, `9780000000019`, `4000000000013`.
+   - Tente cadastrar **GTIN repetido** → deve bloquear (unicidade no hash).
+2. **Produtos → Listar**
+   - Conferir **ordem alfabética** e **paginação (10 por página)**.
+3. **Produtos → Buscar por GTIN-13**
+   - Informar um GTIN cadastrado → deve trazer o produto.
+4. **Produtos → Ficha**
+   - Ver **Minhas listas** (ordenadas) onde o produto aparece.
+   - Ver **Contagem** de aparições em listas de **outros usuários**.
+5. **Minhas listas → Incluir nova lista** → **Acrescentar produto**
+   - Por **GTIN** e por **Listar ATIVOS** (10/página).
+   - Produto **inativo** não aparece e **não** pode ser adicionado.
+6. **Minhas listas → Gerenciar produtos**s
+   - **Alterar quantidade**, **Alterar observações**, **Remover** item.
+7. **Minhas listas → Desativar/Excluir lista**
+   - Verificar **cascade**: associações N:N removidas antes da exclusão.
 
-## Checklist
+---
 
-- Há um CRUD de usuários (que estende a classe ArquivoIndexado, acrescentando Tabelas Hash Extensíveis e Árvores B+ como índices diretos e indiretos conforme necessidade) que funciona corretamente?
-   ````
-   SIM
-   ````
-- Há um CRUD de listas (que estende a classe ArquivoIndexado, acrescentando Tabelas Hash Extensíveis e Árvores B+ como índices diretos e indiretos conforme necessidade) que funciona corretamente?
-   ````
-   SIM
-   ````
-- As listas de presentes estão vinculadas aos usuários usando o idUsuario como chave estrangeira?
-   ````
-   SIM
-   ````
-- Há uma árvore B+ que registre o relacionamento 1:N entre usuários e listas?
-   ````
-   SIM
-   ````
-- Há um CRUD de usuários (que estende a classe ArquivoIndexado, acrescentando Tabelas Hash Extensíveis e Árvores B+ como índices diretos e indiretos conforme necessidade)?
-   ````
-   SIM
-   ````
-- Há uma visualização das listas de outras pessoas por meio de um código NanoID?
-   ````
-   SIM
-   ````
-- O trabalho compila corretamente?
-   ````
-   SIM
-   ````
-- O trabalho está completo e funcionando sem erros de execução?
-   ````
-   SIM
-   ````
-- O trabalho é original e não a cópia de um trabalho de outro grupo?
-   ````
-   SIM
-   ````
-## Link do video
--Link do video explicativo (https://youtu.be/xnOAi2CQIEc)
+## Validações e Regras
 
+- **GTIN-13 (formato)**: aceitamos exatamente **13 dígitos** (`\d{13}`).
+- **GTIN-13 (unicidade)**: garantida via `HashExtensivel` (`GTIN → idProduto`).
+- **Produto inativo**:
+  - Não aparece na listagem de inclusão,
+  - Não pode ser adicionado por GTIN.
+- **Quantidade mínima**: `>= 1` ao adicionar/alterar.
+- **Cascade em Lista**: exclusão/desativação de uma **Lista** remove previamente todas as `ListaProduto` associadas.
+
+> Nota: validação do **dígito verificador** do EAN-13 é **opcional** (não exigida no enunciado).
+
+---
+
+## Evidências (incluir prints)
+
+> Coloque as imagens na pasta `docs/` e ajuste os nomes conforme seus arquivos.
+
+1. **Cadastro de Produto** — `docs/01_cadastro_produto.png`  
+2. **Listagem de Produtos (10/página)** — `docs/02_listagem_produtos.png`  
+3. **Busca por GTIN-13** — `docs/03_busca_gtin.png`  
+4. **Ficha do Produto (minhas listas + contagem de outras)** — `docs/04_ficha_produto.png`  
+5. **Acrescentar Produto à Lista (listar ATIVOS)** — `docs/05_add_produto_lista.png`  
+6. **Gerenciar itens da Lista (alterar/remover)** — `docs/06_gerenciar_itens.png`  
+7. **Exclusão de Lista com Cascade** — `docs/07_excluir_lista_cascade.png`
+
+---
+
+## Checklist (TP2 — exatamente como no enunciado)
+
+- [x] **Há um CRUD de produtos** (que **estende a classe ArquivoIndexado**, acrescentando **Tabelas Hash Extensíveis** e **Árvores B+** como índices diretos e indiretos conforme necessidade) **que funciona corretamente?**  
+  **SIM.** `ArquivoProduto` estende `Arquivo` e usa `HashExtensivel (GTIN→id)`; listagem ordenada e busca por GTIN implementadas.
+
+- [x] **Há um CRUD da entidade de associação ListaProduto** (que **estende a classe ArquivoIndexado**, acrescentando **Tabelas Hash Extensíveis** e **Árvores B+** como índices diretos e indiretos conforme necessidade) **que funciona corretamente?**  
+  **SIM.** `ArquivoListaProduto` estende `Arquivo`; índices indiretos via **duas B+** (`idLista→idListaProduto` e `idProduto→idListaProduto`).
+
+- [x] **A visão de produtos** está corretamente implementada e permite **consultas às listas em que o produto aparece** (**apenas a quantidade no caso de lista de outras pessoas)?**  
+  **SIM.** Ficha do produto mostra **minhas listas** (ordenadas) e **contagem** em listas de outros usuários.
+
+- [x] **A visão de listas** funciona corretamente e permite a **gestão dos produtos na lista?**  
+  **SIM.** Gerenciamento: listar itens `Nome (xquantidade)`, **alterar quantidade**, **alterar observações**, **remover**.
+
+- [x] **A integridade do relacionamento** entre listas e produtos está mantida em **todas as operações?**  
+  **SIM.** Índices B+ atualizados em create/update/delete; ao **excluir/desativar lista**, ocorre **cascade** das associações.
+
+- [x] **O trabalho compila corretamente?**  
+  **SIM.** Comandos incluídos acima.
+
+- [x] **O trabalho está completo e funcionando sem erros de execução?**  
+  **SIM.**
+
+- [x] **O trabalho é original e não a cópia de um trabalho de outro grupo?**  
+  **SIM.**
+
+---
+
+## Link do Vídeo (até 3 minutos)
+- `https://youtu.be/SEU_LINK_AQUI`
+
+---
 
 ## FIM

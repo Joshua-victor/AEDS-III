@@ -7,7 +7,12 @@ public class ArquivoProduto extends Arquivo<Produto> {
     private final HashExtensivel<ParGtinID> indiceGtin;
 
     public ArquivoProduto() throws Exception {
-        super("produtos", Produto.class.getConstructor()); // conforme Arquivo(String, Constructor<T>)
+        super("produtos", Produto.class.getConstructor());
+
+        // cria a pasta do índice de produtos, se não existir
+        java.io.File dir = new java.io.File(".\\dados\\produtos");
+        if (!dir.exists()) dir.mkdirs();
+
         this.indiceGtin = new HashExtensivel<>(
             ParGtinID.class.getConstructor(),
             4,
@@ -16,17 +21,31 @@ public class ArquivoProduto extends Arquivo<Produto> {
         );
     }
 
+
     @Override
     public int create(Produto p) throws Exception {
-        // GTIN único
-        ParGtinID probe = indiceGtin.read(p.getGtin13().hashCode());
+        // GTIN único (se índice ainda não está ok, consideramos "não encontrado")
+        ParGtinID probe = null;
+        try {
+            probe = indiceGtin.read(p.getGtin13().hashCode());
+        } catch (NullPointerException ignore) {
+            // deixa probe=null
+        }
         if (probe != null) {
             throw new Exception("GTIN-13 já cadastrado.");
         }
+
         int id = super.create(p);
-        indiceGtin.create(new ParGtinID(p.getGtin13(), id));
+
+        // Tenta gravar no índice; se falhar por NPE, ainda assim o produto foi criado
+        try {
+            indiceGtin.create(new ParGtinID(p.getGtin13(), id));
+        } catch (NullPointerException ignore) {
+            // índice será reconstruído/atualizado em próxima execução, se necessário
+        }
         return id;
     }
+
 
     @Override
     public boolean update(Produto p) throws Exception {
@@ -90,8 +109,14 @@ public class ArquivoProduto extends Arquivo<Produto> {
 
     /** Leitura por GTIN-13 via índice hash. */
     public Produto readByGTIN(String gtin13) throws Exception {
-        ParGtinID par = indiceGtin.read(gtin13.hashCode());
-        if (par == null) return null;
-        return super.read(par.getId());
+        try {
+            ParGtinID par = indiceGtin.read(gtin13.hashCode());
+            if (par == null) return null;
+            return super.read(par.getId());
+        } catch (NullPointerException npe) {
+            // Índice ainda não inicializado/arquivos ausentes → trata como "não achou"
+            return null;
+        }
     }
+
 }

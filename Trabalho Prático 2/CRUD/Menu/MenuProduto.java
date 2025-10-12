@@ -41,15 +41,22 @@ public class MenuProduto {
 
     private void buscarPorGTIN() {
         try {
-            System.out.print("GTIN-13: ");
+            System.out.print("GTIN-13 (13 dígitos): ");
             String g = sc.nextLine().trim();
+            if (g == null || !g.matches("\\d{13}")) {
+                System.out.println("GTIN-13 deve ter exatamente 13 dígitos numéricos.");
+                return;
+            }
             Produto p = arqProduto.readByGTIN(g);
             if (p == null) { System.out.println("Produto não encontrado."); return; }
             abrirFicha(p);
+        } catch (NullPointerException npe) {
+            System.out.println("Erro interno: índice de GTIN não inicializado.");
         } catch (Exception e) {
             System.out.println("Erro: " + e.getMessage());
         }
     }
+
 
     private void listarTodos() {
         try {
@@ -97,19 +104,41 @@ public class MenuProduto {
         try {
             System.out.print("GTIN-13 (13 dígitos): ");
             String g = sc.nextLine().trim();
-            if (!g.matches("\\d{13}")) { System.out.println("GTIN inválido."); return; }
-            if (arqProduto.readByGTIN(g) != null) { System.out.println("GTIN já cadastrado."); return; }
+            if (g == null || !g.matches("\\d{13}")) {
+                System.out.println("GTIN-13 deve ter exatamente 13 dígitos numéricos.");
+                return;
+            }
+
+            Produto existente;
+            try {
+                existente = arqProduto.readByGTIN(g); // deve retornar null se não achar
+            } catch (NullPointerException npe) {
+                System.out.println("Erro interno: índice de GTIN não inicializado.");
+                return;
+            }
+
+            if (existente != null) {
+                System.out.println("GTIN já cadastrado.");
+                return;
+            }
+
             System.out.print("Nome: ");
             String n = sc.nextLine();
             System.out.print("Descrição: ");
             String d = sc.nextLine();
+
             Produto p = new Produto(-1, g, n, d, true);
             int id = arqProduto.create(p);
-            System.out.println("Criado id=" + id);
+            if (id > 0) System.out.println("Criado id=" + id);
+            else       System.out.println("Falha ao cadastrar produto.");
+
         } catch (Exception e) {
-            System.out.println("Erro: " + e.getMessage());
+            // NPE costuma vir com mensagem null → aqui padronizamos
+            String msg = (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
+            System.out.println("Erro: " + msg);
         }
     }
+
 
     private void abrirFicha(Produto p) {
         while (true) {

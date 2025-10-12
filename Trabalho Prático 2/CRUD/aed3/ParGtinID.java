@@ -1,51 +1,51 @@
 package aed3;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 
 public class ParGtinID implements RegistroHashExtensivel<ParGtinID> {
-    private String gtin13;
+    private String gtin13; // exatamente 13 dígitos
     private int id;
 
     public ParGtinID() { this("", -1); }
     public ParGtinID(String gtin13, int id) {
-        this.gtin13 = gtin13 == null ? "" : gtin13;
+        setGtin13(gtin13);
         this.id = id;
     }
 
     public String getGtin13() { return gtin13; }
-    public void setGtin13(String g) { this.gtin13 = g == null ? "" : g; }
+    public void setGtin13(String g) {
+        if (g == null) g = "";
+        g = g.replaceAll("\\D", "");        // só dígitos
+        if (g.length() > 13) g = g.substring(0, 13);
+        // pad à esquerda com '0' até 13, para manter exatamente 13 bytes
+        this.gtin13 = String.format("%13s", g).replace(' ', '0');
+    }
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
     @Override
     public int hashCode() { return gtin13 == null ? 0 : gtin13.hashCode(); }
 
+    // >>> tamanho FIXO: 13 bytes do GTIN + 4 bytes do id
     @Override
-    public short size() {
-        int len = gtin13.getBytes(StandardCharsets.UTF_8).length;
-        return (short)(2 + len + 4);
-    }
+    public short size() { return (short) (13 + 4); }
 
     @Override
     public byte[] toByteArray() throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(17);
         DataOutputStream dos = new DataOutputStream(baos);
-        byte[] s = gtin13.getBytes(StandardCharsets.UTF_8);
-        dos.writeShort(s.length);
-        dos.write(s);
+        // escreve exatamente 13 bytes (ASCII) do GTIN
+        for (int i = 0; i < 13; i++) dos.writeByte(gtin13.charAt(i));
         dos.writeInt(id);
         return baos.toByteArray();
     }
 
     @Override
     public void fromByteArray(byte[] ba) throws IOException {
-        ByteArrayInputStream bais = new ByteArrayInputStream(ba);
-        DataInputStream dis = new DataInputStream(bais);
-        int len = dis.readShort();
-        byte[] s = new byte[len];
-        dis.readFully(s);
-        this.gtin13 = new String(s, StandardCharsets.UTF_8);
+        DataInputStream dis = new DataInputStream(new ByteArrayInputStream(ba));
+        StringBuilder sb = new StringBuilder(13);
+        for (int i = 0; i < 13; i++) sb.append((char) dis.readByte());
+        this.gtin13 = sb.toString();
         this.id = dis.readInt();
     }
 
