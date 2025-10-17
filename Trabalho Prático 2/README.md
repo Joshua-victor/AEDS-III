@@ -154,7 +154,7 @@ java -cp out Principal
 ---
 
 ## Link do Vídeo (até 3 minutos)
-- `https://youtu.be/NOSSO_LINK_AQUI`
+- `https://youtu.be/hTK_ZYqcJEs`
 
 ---
 
