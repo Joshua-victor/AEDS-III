@@ -9,51 +9,14 @@
 
 ## Descrição (TP2 — Presente Fácil 2.0)
 
-Este TP amplia o TP1 com a entidade **Produto** (identificado por **GTIN-13**) e o relacionamento **N:N** entre **Lista** e **Produto** via entidade **ListaProduto** (campos: `id`, `idLista`, `idProduto`, `quantidade`, `observacoes`).  
-Foram implementados **índices** para sustentar as consultas:
+Este trabalho amplia o TP2 implementando um Índice Invertido para suportar buscas textuais (por palavras-chave) em nomes de produtos. Os resultados são obrigatoriamente ordenados por relevância utilizando o algoritmo TFxIDF (Term Frequency - Inverse Document Frequency).
 
-- **Hash Extensível**: `GTIN-13 → idProduto` (garante **unicidade** e **busca direta por GTIN-13**).
-- **Duas Árvores B+** (índices indiretos):
-  - `idLista → idListaProduto` (quais itens uma lista possui),
-  - `idProduto → idListaProduto` (em quais listas um produto aparece).
-
-**Principais funcionalidades novas:**
-- CRUD de **Produto** (GTIN-13 único, nome, descrição, ativo/inativo).
-- **Buscar Produto por GTIN-13**.
-- **Listar Produtos** em **ordem alfabética**, com **10 por página**.
-- **Ficha do Produto**: exibe as **minhas listas** (ordenadas) onde ele aparece e a **contagem de listas de outros usuários** onde está presente.
-- **Gerenciar produtos da lista**: listar itens `Nome (xquantidade)`, **alterar quantidade**, **alterar observações**, **remover item**.
-- **Acrescentar produto à lista**: por **GTIN** ou **listando apenas os ATIVOS** (10/página).
-- **Cascade** ao excluir/desativar **Lista**: remove as associações `ListaProduto` antes de apagar a lista.
-
----
-
-## Estrutura do Projeto
-
-```
-/CRUD
-  /aed3
-    Arquivo.java
-    HashExtensivel.java
-    ArvoreBMais.java
-    ParGtinID.java
-    ParIDListaIDListaProduto.java
-    ParIDProdutoIDListaProduto.java
-    ... (outros utilitários de índice/registro)
-  /Menu
-    Principal.java
-    Usuario.java              / ArquivoUsuario.java
-    Lista.java                / ArquivoLista.java
-    Produto.java              / ArquivoProduto.java
-    ListaProduto.java         / ArquivoListaProduto.java
-    MenuUsuario.java / MenuLista.java / MenuProduto.java
-  /dados
-    /usuarios
-    /listas
-    /produtos
-    /listas_produtos
-```
-> Observação: arquivos do diretório `Menu/` estão no **pacote padrão** (sem `package`), compatível com os comandos de compilação abaixo.
+**Funcionalidades Adicionadas/AlteradasÍndice Invertido:**
+- Criado e mantido pela classe ListaInvertida (baseada em arquivos de dicionário e blocos) para mapear Termo → Lista de IDs de Produtos.
+- Processamento de Termos: Introdução da classe TermoUtils para normalizar (minúsculas, sem acentos) e filtrar stop words da consulta e dos nomes dos produtos.
+- Métricas TF/IDF:O valor TF (Term Frequency) é calculado e armazenado no índice para cada termo/produto.O valor IDF (Inverse Document Frequency) é calculado dinamicamente durante a busca, usando o contador total de produtos ($N$) da ListaInvertida.
+- Busca por Relevância: A nova opção de busca processa a query, acumula o score TF × IDF para cada produto e retorna os IDs ordenados de forma decrescente por esse score.
+- Manutenção Automática: Os métodos create, update (se o nome mudar) e delete em ArquivoProduto foram alterados para manter o Índice Invertido consistente e o contador de entidades atualizado.
 
 ---
 
@@ -82,48 +45,29 @@ java -cp out Principal
 ## Fluxo de Teste (roteiro rápido)
 
 1. **Produtos → Cadastrar**
-   - GTIN-13 exemplos: `7890000000017`, `9780000000019`, `4000000000013`.
-   - Tente cadastrar **GTIN repetido** → deve bloquear (unicidade no hash).
-2. **Produtos → Listar**
-   - Conferir **ordem alfabética** e **paginação (10 por página)**.
+   - Cadastrar produtos com nomes que se sobrepõem (ex: "Copo de Vidro", "Vasilha de Vidro verde").
+   
+2. **Menu Principal**
+   - Verificar se a busca ignora o 'de' e soma os scores de 'copo' e 'vidro'.    - Os resultados devem ser exibidos ordenados pelo maior score TFxIDF
 3. **Produtos → Buscar por GTIN-13**
    - Informar um GTIN cadastrado → deve trazer o produto.
 4. **Produtos → Ficha**
    - Ver **Minhas listas** (ordenadas) onde o produto aparece.
    - Ver **Contagem** de aparições em listas de **outros usuários**.
 5. **Minhas listas → Incluir nova lista** → **Acrescentar produto**
-   - Por **GTIN** e por **Listar ATIVOS** (10/página).
-   - Produto **inativo** não aparece e **não** pode ser adicionado.
-6. **Minhas listas → Gerenciar produtos**s
-   - **Alterar quantidade**, **Alterar observações**, **Remover** item.
-7. **Minhas listas → Desativar/Excluir lista**
-   - Verificar **cascade**: associações N:N removidas antes da exclusão.
+   -Realizar busca por palavras e verificar se a lista de seleção também aparece ordenada por relevância.
 
 ---
+
 
 ## Validações e Regras
 
-- **GTIN-13 (formato)**: aceitamos exatamente **13 dígitos** (`\d{13}`).
-- **GTIN-13 (unicidade)**: garantida via `HashExtensivel` (`GTIN → idProduto`).
-- **Produto inativo**:
-  - Não aparece na listagem de inclusão,
-  - Não pode ser adicionado por GTIN.
-- **Quantidade mínima**: `>= 1` ao adicionar/alterar.
-- **Cascade em Lista**: exclusão/desativação de uma **Lista** remove previamente todas as `ListaProduto` associadas.
+- TFxIDF: Implementado no método ArquivoProduto.searchByTerms(query), que calcula o score e ordena a lista de IDs antes de retornar.
+- Normalização: Utiliza TermoUtils para garantir que o índice e a busca sejam case-insensitive e accent-insensitive.
+- Stop Words: Palavras como "de", "o", "a", etc., são removidas da indexação e das consultas.
 
 ---
 
-## Evidências/prints
-
-1. **Cadastro de Produto** — `docs/01_cadastro_produto.png`  
-2. **Listagem de Produtos (10/página)** — `docs/02_listagem_produtos.png`  
-3. **Busca por GTIN-13** — `docs/03_busca_gtin.png`  
-4. **Ficha do Produto (minhas listas + contagem de outras)** — `docs/04_ficha_produto.png`  
-5. **Acrescentar Produto à Lista (listar ATIVOS)** — `docs/05_add_produto_lista.png`  
-6. **Gerenciar itens da Lista (alterar/remover)** — `docs/06_gerenciar_itens.png`  
-7. **Exclusão de Lista com Cascade** — `docs/07_excluir_lista_cascade.png`
-
----
 
 ## Checklist
 
