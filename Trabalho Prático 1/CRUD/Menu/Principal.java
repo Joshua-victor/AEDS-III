@@ -62,12 +62,15 @@ public class Principal {
         System.out.println("\n=== Entrar ===");
         System.out.print("E-mail: ");
         String email = console.nextLine();
+        System.out.print("Senha: ");
+        String senha = console.nextLine();
         Usuario u = arqUsuario.read(email);
-        if (u == null) {
-            System.out.println("Usuário não encontrado.");
+        Usuario s = arqUsuario.read(senha);
+        if (u == null || s == null) {
+            System.out.println("Email ou senha incorretos");
             return;
         }
-        usuarioAtivo = u; // sem senha para simplificar (escopo do TP)
+        usuarioAtivo = u; 
         System.out.println("Sessão iniciada.");
     }
 
@@ -82,7 +85,7 @@ public class Principal {
         u.perguntaSecreta = console.nextLine();
         System.out.print("Resposta secreta: ");
         u.respostaSecreta = console.nextLine();
-        System.out.print("Hash de senha: ");
+        System.out.print("Senha: ");
         u.hashSenha = console.nextLine();
 
         int id = arqUsuario.create(u);

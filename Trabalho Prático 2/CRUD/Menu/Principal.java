@@ -64,16 +64,19 @@ public class Principal {
         return s.isEmpty() ? -1 : Integer.parseInt(s);
     }
 
-    private static void entrar() throws Exception {
+ private static void entrar() throws Exception {
         System.out.println("\n=== Entrar ===");
         System.out.print("E-mail: ");
         String email = console.nextLine();
+        System.out.print("Senha: ");
+        String senha = console.nextLine();
         Usuario u = arqUsuario.read(email);
-        if (u == null) {
-            System.out.println("Usuário não encontrado.");
+        Usuario s = arqUsuario.read(senha);
+        if (u == null || s == null) {
+            System.out.println("Email ou senha incorretos");
             return;
         }
-        usuarioAtivo = u; // sem senha para simplificar (escopo do TP)
+        usuarioAtivo = u; 
         System.out.println("Sessão iniciada.");
     }
 
@@ -88,7 +91,7 @@ public class Principal {
         u.perguntaSecreta = console.nextLine();
         System.out.print("Resposta secreta: ");
         u.respostaSecreta = console.nextLine();
-        System.out.print("Hash de senha: ");
+        System.out.print("Senha: ");
         u.hashSenha = console.nextLine();
 
         int id = arqUsuario.create(u);
@@ -115,26 +118,57 @@ public class Principal {
     }
 
     private static void buscarListaOutroUsuario() throws Exception {
-        System.out.println("\n=== Buscar lista de outro usuário ===");
-        System.out.print("Código compartilhável: ");
-        String codigo = console.nextLine();
+    
+    System.out.println("\n=== Buscar lista de outro usuário ===");
+    System.out.print("Código compartilhável: ");
+    String codigo = console.nextLine();
 
-        ArquivoLista arqLista = new ArquivoLista();
-        Lista listaEncontrada = arqLista.readByCode(codigo);
+    ArquivoLista arqLista = new ArquivoLista();
+    Lista listaEncontrada = arqLista.readByCode(codigo);
 
-        if (listaEncontrada != null) {
-            ArquivoUsuario arqU = new ArquivoUsuario();
-            Usuario dono = arqU.read(listaEncontrada.idUsuario);
-            String nomeDono = (dono == null ? "(desconhecido)" : dono.nome);
-            System.out.println("\nLista encontrada:");
-            System.out.println("Nome da lista....: " + listaEncontrada.nome);
-            System.out.println("Descrição........: " + listaEncontrada.descricao);
-            System.out.println("Código...........: " + listaEncontrada.codigoCompartilhavel);
-            System.out.println("Dono.............: " + nomeDono);
-        } else {
-            System.out.println("Nenhuma lista encontrada com este código.");
+    if (listaEncontrada != null) {
+        ArquivoUsuario arqU = new ArquivoUsuario();
+        Usuario dono = arqU.read(listaEncontrada.idUsuario);
+        String nomeDono = (dono == null ? "(desconhecido)" : dono.nome);
+        
+        System.out.println("\nLista encontrada:");
+        System.out.println("Nome da lista....: " + listaEncontrada.nome);
+        System.out.println("Descrição........: " + listaEncontrada.descricao);
+        System.out.println("Código...........: " + listaEncontrada.codigoCompartilhavel);
+        System.out.println("Dono.............: " + nomeDono);
+    
+        ArquivoListaProduto arqListaProduto = new ArquivoListaProduto(); 
+        ArquivoProduto arqProduto = new ArquivoProduto();
+        
+        // 1. Carrega os IDs dos itens da lista (ListaProduto)
+        var idsLP = arqListaProduto.listarIdsPorLista(listaEncontrada.getId()); // Use o ID da lista
+        java.util.ArrayList<ListaProduto> itens = new java.util.ArrayList<>();
+        for (int idLP : idsLP) {
+            ListaProduto lp = arqListaProduto.read(idLP);
+            if (lp != null) itens.add(lp);
         }
+
+        System.out.println("\n--- ITENS DA LISTA ---");
+        if (itens.isEmpty()) {
+            System.out.println("(Lista vazia)");
+        } else {
+            // 2. Exibe cada item
+            for (int i = 0; i < itens.size(); i++) {
+                ListaProduto lp = itens.get(i);
+                Produto p = arqProduto.read(lp.getIdProduto()); 
+                
+                String nomeProduto = (p == null ? ("Produto #" + lp.getIdProduto()) : p.getNome());
+                String obs = lp.getObservacoes().isEmpty() ? "" : " (Obs: " + lp.getObservacoes() + ")";
+                
+                System.out.printf(" - %s (x%d)%s%n", nomeProduto, lp.getQuantidade(), obs);
+            }
+        }
+        // ----------------------------------------------------
+        
+    } else {
+        System.out.println("Nenhuma lista encontrada com este código.");
     }
+}
 
     private static void abrirProdutos() throws Exception {
         MenuProduto mp = new MenuProduto(

@@ -16,8 +16,24 @@ public class ParIDListaIDListaProduto implements RegistroArvoreBMais<ParIDListaI
     public int getIdListaProduto() { return idListaProduto; }
 
     @Override
-    public int compareTo(ParIDListaIDListaProduto o) { return Integer.compare(this.idLista, o.idLista); }
+    public int getPrimeiraChave() {
+        return this.idLista; // Chave de busca para esse índice
+    }
 
+    // NO ARQUIVO ParIDListaIDListaProduto.java
+@Override
+public int compareTo(ParIDListaIDListaProduto o) {
+    // 1. Compara a primeira chave (idLista)
+    int comparacaoPrimeiraChave = Integer.compare(this.idLista, o.idLista);
+
+    // 2. Se a primeira chave for diferente, retorna o resultado
+    if (comparacaoPrimeiraChave != 0) {
+        return comparacaoPrimeiraChave;
+    }
+
+    // 3. Se a primeira chave for IGUAL, usa a segunda chave (idListaProduto)
+    return Integer.compare(this.idListaProduto, o.idListaProduto);
+}
     @Override
     public short size() { return (short) (4 + 4); }
 

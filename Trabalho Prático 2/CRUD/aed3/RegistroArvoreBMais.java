@@ -13,5 +13,7 @@ public interface RegistroArvoreBMais<T> {
   public short size(); 
   
   public T clone(); 
+
+  public int getPrimeiraChave();
   
 }

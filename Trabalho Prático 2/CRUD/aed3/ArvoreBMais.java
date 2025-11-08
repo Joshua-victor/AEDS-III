@@ -192,6 +192,8 @@ public class ArvoreBMais<T extends RegistroArvoreBMais<T>> {
     // pela chave na mesma. A busca continua pelos filhos, se houverem.
     // Dentro da sua classe ArvoreBMais
 
+// Busca recursiva. Este método recebe a referência de uma página e busca
+// pela chave na mesma. A busca continua pelos filhos, se houverem.
 private ArrayList<T> read1(T elem, long pagina) throws Exception {
 
     if (pagina == -1) {
@@ -204,19 +206,6 @@ private ArrayList<T> read1(T elem, long pagina) throws Exception {
     arquivo.readFully(buffer); // Usar readFully para segurança
     pa.fromByteArray(buffer);
 
-    // --- INÍCIO DA CORREÇÃO ---
-
-    // Verifica se é uma busca parcial (pelo idUsuario, com idLista = -1)
-    boolean buscaParcial = false;
-    int idUsuarioBusca = -1;
-    if (elem instanceof ParIDListaIDUsuario) {
-        ParIDListaIDUsuario p = (ParIDListaIDUsuario) elem;
-        if (p.idLista == -1) {
-            buscaParcial = true;
-            idUsuarioBusca = p.idUsuario;
-        }
-    }
-
     // Navega até a posição inicial de busca
     int i = 0;
     while (i < pa.elementos.size() && elem.compareTo(pa.elementos.get(i)) > 0) {
@@ -227,61 +216,63 @@ private ArrayList<T> read1(T elem, long pagina) throws Exception {
     if (pa.filhos.get(0) != -1) {
         if (i == pa.elementos.size() || elem.compareTo(pa.elementos.get(i)) < 0)
             return read1(elem, pa.filhos.get(i));
-        else
+        else // Chave igual à do nó, mas continua descendo pelo filho da direita
             return read1(elem, pa.filhos.get(i + 1));
     }
     
-    // Se CHEGOU a uma página folha, inicia a coleta de dados
+    // Se CHEGOU a uma página folha, inicia a coleta de dados (BUSCA LATERAL)
     ArrayList<T> lista = new ArrayList<>();
+    
+    // i é o índice do primeiro elemento que é >= elem (ou pa.elementos.size())
 
-    // LÓGICA PARA BUSCA PARCIAL (o nosso caso)
-    if (buscaParcial) {
-        // Encontramos a primeira página que PODE conter os registros.
-        // Agora, varremos as folhas sequencialmente.
-        boolean procurando = true;
-        while (procurando) {
+    // 1. Itera pela página folha atual, a partir do índice 'i'
+    // 2. Continua iterando lateralmente (próxima folha) enquanto a primeira chave
+    // (idLista no seu caso) for igual à primeira chave do elemento de busca (elem)
+
+    boolean buscando = true;
+    long paginaAtual = pagina;
+    
+    // Loop principal de busca em páginas folha
+    while (buscando) {
+        // Itera sobre os elementos da página atual
+        while (i < pa.elementos.size()) {
+            T elementoAtual = pa.elementos.get(i);
             
-            // Percorre todos os elementos da página atual
-            for (i = 0; i < pa.elementos.size(); i++) {
-                ParIDListaIDUsuario elementoAtual = (ParIDListaIDUsuario) pa.elementos.get(i);
-                
-                // Se o idUsuario for igual, adiciona na lista
-                if (elementoAtual.idUsuario == idUsuarioBusca) {
-                    lista.add((T)elementoAtual);
-                } 
-                // Se o idUsuario já for maior, podemos parar a busca
-                else if (elementoAtual.idUsuario > idUsuarioBusca) {
-                    procurando = false;
-                    break;
-                }
-            }
-
-            // Se a busca ainda não terminou, vai para a próxima página folha
-            if (procurando) {
-                if (pa.proxima != -1) {
-                    arquivo.seek(pa.proxima);
-                    arquivo.readFully(buffer);
-                    pa.fromByteArray(buffer);
-                } else {
-                    // Não há mais páginas, fim da busca
-                    procurando = false;
-                }
-            }
-        }
-    } 
-    // LÓGICA PARA BUSCA EXATA (lógica original, para outras buscas)
-    else {
-        if (i < pa.elementos.size() && elem.compareTo(pa.elementos.get(i)) == 0) {
-            // Adiciona todos os elementos duplicados (se houver)
-            while (i < pa.elementos.size() && elem.compareTo(pa.elementos.get(i)) == 0) {
-                lista.add(pa.elementos.get(i));
+            // Compara *apenas* a primeira chave (idLista)
+            // Se a primeira chave do elemento atual for igual à primeira chave do elemento de busca, adiciona.
+            if (elementoAtual.getPrimeiraChave() == elem.getPrimeiraChave()) {
+                lista.add(elementoAtual.clone()); // Adiciona o elemento encontrado (clone para segurança)
                 i++;
             }
+            // Se a primeira chave for maior, paramos a busca (chaves são ordenadas)
+            else if (elementoAtual.getPrimeiraChave() > elem.getPrimeiraChave()) {
+                buscando = false;
+                break;
+            }
+            // Se for menor, é um erro de navegação, mas paramos
+            else {
+                buscando = false;
+                break;
+            }
+        }
+        
+        // Se a busca parou dentro do loop for (primeira chave maior), saímos do while(buscando)
+        if (!buscando) break;
+
+        // Se chegamos ao fim da página atual, vamos para a próxima folha
+        if (pa.proxima != -1) {
+            paginaAtual = pa.proxima;
+            arquivo.seek(paginaAtual);
+            arquivo.readFully(buffer);
+            pa.fromByteArray(buffer);
+            i = 0; // Começa a varredura da próxima página folha do início (índice 0)
+        } else {
+            // Não há mais páginas, fim da busca
+            buscando = false;
         }
     }
     
     return lista;
-    // --- FIM DA CORREÇÃO ---
 }
 
     // Inclusão de novos elementos na árvore. A inclusão é recursiva. A primeira

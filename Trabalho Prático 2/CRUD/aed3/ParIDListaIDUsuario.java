@@ -30,6 +30,11 @@ public class ParIDListaIDUsuario implements aed3.RegistroArvoreBMais<ParIDListaI
     public void setId(int id) {
         this.idLista = id;
     }
+
+    @Override
+    public int getPrimeiraChave() {
+        return this.idUsuario; // Chave de busca para esse índice
+    }
     
     @Override
     public int compareTo(ParIDListaIDUsuario o) {
