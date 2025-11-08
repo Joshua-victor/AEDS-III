@@ -1,4 +1,4 @@
-# Trabalho Prático 2 – AEDs III — Relatório
+# Trabalho Prático 3 – AEDs III — Relatório
 
 ## Integrantes
 - [Joshua Victor Costa e Pereira](https://github.com/Joshua-victor)
