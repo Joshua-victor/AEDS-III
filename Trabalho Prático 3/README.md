@@ -128,19 +128,13 @@ java -cp out Principal
 ## Checklist
 
 - [x] **O índice invertido com os termos dos nomes dos produts foi criado usando a classe ListaInvertida**  
-  **SIM.** `ArquivoProduto` estende `Arquivo` e usa `HashExtensivel (GTIN→id)`; listagem ordenada e busca por GTIN implementadas.
+  **SIM.**
 
-- [x] **Há um CRUD da entidade de associação ListaProduto** (que **estende a classe ArquivoIndexado**, acrescentando **Tabelas Hash Extensíveis** e **Árvores B+** como índices diretos e indiretos conforme necessidade) **que funciona corretamente?**  
-  **SIM.** `ArquivoListaProduto` estende `Arquivo`; índices indiretos via **duas B+** (`idLista→idListaProduto` e `idProduto→idListaProduto`).
+- [x] **É possível buscar produtos por palavras no menu de manutenção de produtos?**  
+  **SIM.**
 
-- [x] **A visão de produtos** está corretamente implementada e permite **consultas às listas em que o produto aparece** (**apenas a quantidade no caso de lista de outras pessoas)?**  
-  **SIM.** Ficha do produto mostra **minhas listas** (ordenadas) e **contagem** em listas de outros usuários.
-
-- [x] **A visão de listas** funciona corretamente e permite a **gestão dos produtos na lista?**  
-  **SIM.** Gerenciamento: listar itens `Nome (xquantidade)`, **alterar quantidade**, **alterar observações**, **remover**.
-
-- [x] **A integridade do relacionamento** entre listas e produtos está mantida em **todas as operações?**  
-  **SIM.** Índices B+ atualizados em create/update/delete; ao **excluir/desativar lista**, ocorre **cascade** das associações.
+- [x] **É possível buscar produtos por palavras na hora de acrescentá-los às listas dos usuários?**  
+  **SIM.**
 
 - [x] **O trabalho compila corretamente?**  
   **SIM.** Comandos incluídos acima.
@@ -154,7 +148,7 @@ java -cp out Principal
 ---
 
 ## Link do Vídeo (até 3 minutos)
-- `https://youtu.be/hTK_ZYqcJEs`
+- `https://linkDoVideo`
 
 ---
 
