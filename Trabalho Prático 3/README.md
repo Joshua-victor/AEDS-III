@@ -127,7 +127,7 @@ java -cp out Principal
 
 ## Checklist
 
-- [x] **Há um CRUD de produtos** (que **estende a classe ArquivoIndexado**, acrescentando **Tabelas Hash Extensíveis** e **Árvores B+** como índices diretos e indiretos conforme necessidade) **que funciona corretamente?**  
+- [x] **O índice invertido com os termos dos nomes dos produts foi criado usando a classe ListaInvertida**  
   **SIM.** `ArquivoProduto` estende `Arquivo` e usa `HashExtensivel (GTIN→id)`; listagem ordenada e busca por GTIN implementadas.
 
 - [x] **Há um CRUD da entidade de associação ListaProduto** (que **estende a classe ArquivoIndexado**, acrescentando **Tabelas Hash Extensíveis** e **Árvores B+** como índices diretos e indiretos conforme necessidade) **que funciona corretamente?**  
