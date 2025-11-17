@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AEDs III — CRUD Produto (modelo Java)</title>
+
+  <!-- CSS (ajuste o caminho se necessário) -->
+  <link rel="stylesheet" href="../web/assets/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Visualização CRUD de Produtos (Modelo Java)</h1>
+    <p class="subtitle">Campos: id, gtin13, nome, descricao, ativo — armazenados em LocalStorage</p>
+  </header>
+
+  <main>
+    <!-- FORMULÁRIO -->
+    <section class="card" aria-label="Formulário de Produto">
+      <h2>Cadastrar / Editar Produto</h2>
+      <form id="produtoForm" autocomplete="off">
+        <!-- id é oculto -->
+        <input type="hidden" id="prodId" />
+
+        <label for="gtin13">GTIN-13</label>
+        <input id="gtin13" type="text" placeholder="Ex: 7891234567890" maxlength="13" />
+
+        <label for="nome">Nome</label>
+        <input id="nome" type="text" placeholder="Ex: Teclado Mecânico" required />
+
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" rows="3" placeholder="Descrição curta..."></textarea>
+
+        <label for="ativo" style="margin-top:10px;">
+          <input id="ativo" type="checkbox" /> Produto ativo
+        </label>
+
+        <div class="btn-row">
+          <button type="submit" class="btn-primary">Salvar</button>
+          <button type="button" id="limparForm" class="btn-secondary">Limpar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- TABELA / BUSCA -->
+    <section class="card" aria-label="Lista de Produtos">
+      <h2>Produtos</h2>
+
+      <div class="search-area">
+        <input id="search" type="text" placeholder="Buscar por GTIN, nome, descrição..." />
+        <button id="btnSearch" class="btn-secondary">Buscar</button>
+        <button id="btnReset" class="btn-secondary">Reset</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="produtosTable" aria-describedby="Tabela de produtos">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>GTIN-13</th>
+              <th>Nome</th>
+              <th>Descrição</th>
+              <th>Ativo</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- preenchido por JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="stats" class="stats" style="margin-top:8px;"></div>
+
+      <div class="btn-row" style="margin-top:12px;">
+        <button id="exportBtn" class="btn-secondary small">Exportar JSON</button>
+        <button id="importBtn" class="btn-secondary small">Importar JSON</button>
+        <input type="file" id="importInput" accept="application/json" style="display:none" />
+        <button id="showRawBtn" class="btn-secondary small">Mostrar JSON (raw)</button>
+        <button id="clearAllBtn" class="btn-danger small">Apagar todos</button>
+      </div>
+
+      <!-- área opcional para exibir JSON bruto -->
+      <div id="rawArea" style="display:none; margin-top:10px;">
+        <h4>JSON armazenado (LocalStorage)</h4>
+        <textarea id="rawJson" rows="8" style="width:100%; font-family:monospace; padding:8px; border-radius:6px; border:1px solid #e2e8f0;"></textarea>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Projeto AEDs III — Simulação de arquivo via LocalStorage</p>
+  </footer>
+
+  <!-- Script principal -->
+  <script src="../web/scripts/script.js"></script>
+</body>
+</html>

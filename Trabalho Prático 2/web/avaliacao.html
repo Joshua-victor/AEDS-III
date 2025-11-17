@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Avaliação de Usabilidade — AEDs III</title>
+  <link rel="stylesheet" href="../web/assets/styles.css">
+  <style>
+    /* pequenas adaptações específicas para a página de avaliação */
+    .container { max-width: 920px; margin: 18px auto; padding: 12px; }
+    .survey-card { padding: 18px; border-radius:10px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.06); margin-bottom:18px; }
+    .flex-row { display:flex; gap:12px; align-items:center; }
+    .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .likert-row { display:flex; gap:8px; align-items:center; margin:8px 0; }
+    .likert-label { width:300px; font-weight:600; color:#223; }
+    .small-input { font-size:13px; padding:8px; }
+    #responsesTable { width:100%; font-size:13px; }
+    .summary { margin-top:12px; font-size:14px; color:#123; }
+    textarea.comment { width:100%; min-height:80px; padding:8px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header style="text-align:center; margin-bottom:12px;">
+      <h1>Avaliação de Utilidade & Usabilidade — Visualização CRUD</h1>
+      <p class="subtitle">Peça aos participantes (alunos que já cursaram AEDs III) que respondam a este formulário após realizarem o roteiro de tarefas.</p>
+    </header>
+
+    <section class="survey-card" aria-label="Formulário de avaliação">
+      <h2>Identificação do participante</h2>
+      <div class="grid-2" style="margin-bottom:12px;">
+        <div>
+          <label>Nome (opcional)</label>
+          <input id="participantName" class="small-input" type="text" placeholder="Ex: João Silva" />
+        </div>
+        <div>
+          <label>Curso / Período</label>
+          <input id="participantCourse" class="small-input" type="text" placeholder="Ex: CC - 6º período" />
+        </div>
+      </div>
+
+      <h2>Instruções</h2>
+      <p>Execute o roteiro de tarefas (incluir, consultar, alterar, excluir e export/import). Em seguida, responda as afirmações abaixo usando a escala Likert:</p>
+      <p><strong>1</strong> Discordo totalmente — <strong>2</strong> Discordo — <strong>3</strong> Neutro — <strong>4</strong> Concordo — <strong>5</strong> Concordo totalmente</p>
+
+      <form id="surveyForm">
+        <div style="margin-top:12px;">
+          <!-- Afirmações -->
+          <div class="likert-row">
+            <div class="likert-label">1. A aplicação me ajuda a compreender como os dados são armazenados (arquivo/LocalStorage).</div>
+            <div>
+              <select required name="q1" id="q1" class="small-input">
+                <option value="">--</option>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="likert-row">
+            <div class="likert-label">2. As funções principais (incluir, consultar, alterar, excluir) são fáceis de encontrar e usar.</div>
+            <div><select required name="q2" id="q2" class="small-input"><option value="">--</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+          </div>
+
+          <div class="likert-row">
+            <div class="likert-label">3. As mensagens exibidas pelo sistema (sucesso/erro) são claras e úteis.</div>
+            <div><select required name="q3" id="q3" class="small-input"><option value="">--</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+          </div>
+
+          <div class="likert-row">
+            <div class="likert-label">4. A aplicação é intuitiva, mesmo para quem a usa pela primeira vez.</div>
+            <div><select required name="q4" id="q4" class="small-input"><option value="">--</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+          </div>
+
+          <div class="likert-row">
+            <div class="likert-label">5. O fluxo para editar um registro está claro.</div>
+            <div><select required name="q5" id="q5" class="small-input"><option value="">--</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+          </div>
+
+          <div class="likert-row">
+            <div class="likert-label">6. O recurso de exportar/importar facilita criar backups e restaurar dados.</div>
+            <div><select required name="q6" id="q6" class="small-input"><option value="">--</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+          </div>
+
+          <div class="likert-row">
+            <div class="likert-label">7. De modo geral, estou satisfeito(a) com a experiência de uso da aplicação.</div>
+            <div><select required name="q7" id="q7" class="small-input"><option value="">--</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <label>Comentários / Sugestões (opcional)</label>
+            <textarea id="comments" class="comment" placeholder="Observações dos usuários (dificuldades, sugestões de melhoria)..."></textarea>
+          </div>
+
+          <div class="btn-row" style="margin-top:12px;">
+            <button type="submit" class="btn-primary">Enviar resposta</button>
+            <button type="button" id="btnClearForm" class="btn-secondary">Limpar</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- área de gestão das respostas -->
+    <section class="survey-card" aria-label="Respostas coletadas">
+      <h2>Respostas coletadas</h2>
+      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+        <button id="btnShowAll" class="btn-secondary small">Mostrar todas</button>
+        <button id="btnSummary" class="btn-secondary small">Mostrar resumo (médias)</button>
+        <button id="btnExportJSON" class="btn-secondary small">Exportar JSON</button>
+        <button id="btnExportCSV" class="btn-secondary small">Exportar CSV</button>
+        <button id="btnClearAll" class="btn-danger small">Apagar respostas</button>
+      </div>
+
+      <div id="summary" class="summary" style="display:none;"></div>
+
+      <div style="overflow:auto; max-height:360px; border:1px solid #e2e8f0; border-radius:8px;">
+        <table id="responsesTable">
+          <thead style="background:#f1f5f9; position:sticky; top:0;">
+            <tr>
+              <th>#</th>
+              <th>Nome</th>
+              <th>Curso</th>
+              <th>Data</th>
+              <th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th><th>Q5</th><th>Q6</th><th>Q7</th>
+              <th>Comentários</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer style="text-align:center; margin-top:14px;">
+      <p>Use este formulário para coletar as 10 avaliações exigidas pelo trabalho. Depois, exporte os resultados e inclua no relatório.</p>
+    </footer>
+  </div>
+
+  <script src="../web/scripts/avaliacao.js"></script>
+</body>
+</html>
