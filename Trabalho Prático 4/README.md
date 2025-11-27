@@ -75,7 +75,7 @@ A aplicação oferece uma visualização interativa das operações básicas de 
 ---
 
 ## Link do Vídeo (até 3 minutos)
-- `https://youtu.be/hTK_ZYqcJEs`
+- `https://linkdovideo`
 
 ---
 
