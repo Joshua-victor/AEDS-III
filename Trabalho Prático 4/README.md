@@ -1,4 +1,4 @@
-# Trabalho Prático 2 – AEDs III — Relatório
+# Trabalho Prático 4 – AEDs III — Relatório
 
 ## Integrantes
 - [Joshua Victor Costa e Pereira](https://github.com/Joshua-victor)
@@ -7,77 +7,21 @@
 
 ---
 
-## Descrição (TP2 — Presente Fácil 2.0)
+## Descrição (TP4 — Projeto web do CRUD de Produtos)
 
-Este TP amplia o TP1 com a entidade **Produto** (identificado por **GTIN-13**) e o relacionamento **N:N** entre **Lista** e **Produto** via entidade **ListaProduto** (campos: `id`, `idLista`, `idProduto`, `quantidade`, `observacoes`).  
-Foram implementados **índices** para sustentar as consultas:
+O Trabalho Prático 4 (TP4) da disciplina Algoritmos e Estruturas de Dados III consistiu no desenvolvimento de uma página web com o objetivo extensionista de facilitar a compreensão das estruturas de dados (emulando um arquivo) para futuros alunos do curso de Ciência da Computação.
 
-- **Hash Extensível**: `GTIN-13 → idProduto` (garante **unicidade** e **busca direta por GTIN-13**).
-- **Duas Árvores B+** (índices indiretos):
-  - `idLista → idListaProduto` (quais itens uma lista possui),
-  - `idProduto → idListaProduto` (em quais listas um produto aparece).
+A aplicação oferece uma visualização interativa das operações básicas de manipulação de dados, que são: Inclusão (Create), Busca (Read), Alteração (Update) e Exclusão (Delete) de "produtos".
 
-**Principais funcionalidades novas:**
-- CRUD de **Produto** (GTIN-13 único, nome, descrição, ativo/inativo).
-- **Buscar Produto por GTIN-13**.
-- **Listar Produtos** em **ordem alfabética**, com **10 por página**.
-- **Ficha do Produto**: exibe as **minhas listas** (ordenadas) onde ele aparece e a **contagem de listas de outros usuários** onde está presente.
-- **Gerenciar produtos da lista**: listar itens `Nome (xquantidade)`, **alterar quantidade**, **alterar observações**, **remover item**.
-- **Acrescentar produto à lista**: por **GTIN** ou **listando apenas os ATIVOS** (10/página).
-- **Cascade** ao excluir/desativar **Lista**: remove as associações `ListaProduto` antes de apagar a lista.
+**Operações Especiais Implementadas:**
+- Visualização Dinâmica: [Vizualização de tabelas com produtos inseridos, permitindo que os mesmos possam sofrer alterações/exclusões].
+-Inclusão (Create): [Produto com GTIN pode ser inserido permitindo adicionar o nome do protudo juntamente com sua descrição].
+- Busca (Read): [Permitindo fazer busca por nomes ou GTIN a tabela é atualizada através do desejo de busca do usuario].
+- Alteração (Update): [Selecionando o item o programa permite você alterar dados do item].
+- Exclusão (Delete): [selecionando o item o programa permite você excluir os dados do item].
 
----
+---<img width="697" height="687" alt="image" src="https://github.com/user-attachments/assets/b2f073fc-98b5-49ac-b7c4-e5354cb33e8a" />
 
-## Estrutura do Projeto
-
-```
-/CRUD
-  /aed3
-    Arquivo.java
-    HashExtensivel.java
-    ArvoreBMais.java
-    ParGtinID.java
-    ParIDListaIDListaProduto.java
-    ParIDProdutoIDListaProduto.java
-    ... (outros utilitários de índice/registro)
-  /Menu
-    Principal.java
-    Usuario.java              / ArquivoUsuario.java
-    Lista.java                / ArquivoLista.java
-    Produto.java              / ArquivoProduto.java
-    ListaProduto.java         / ArquivoListaProduto.java
-    MenuUsuario.java / MenuLista.java / MenuProduto.java
-  /dados
-    /usuarios
-    /listas
-    /produtos
-    /listas_produtos
-```
-> Observação: arquivos do diretório `Menu/` estão no **pacote padrão** (sem `package`), compatível com os comandos de compilação abaixo.
-
----
-
-## Como compilar e executar
-
-### Windows (CMD/PowerShell)
-```bat
-chcp 65001
-javac -encoding UTF-8 -d out aed3\*.java
-javac -encoding UTF-8 -cp out -d out Menu\*.java
-java -cp out Principal
-```
-> Se `Principal.java` estiver com `package Menu;`, use: `java -cp out Menu.Principal`.
-
-### Linux/macOS
-```bash
-find aed3 -name "*.java" > s1.txt
-find Menu -name "*.java" > s2.txt
-javac -encoding UTF-8 -d out @s1.txt
-javac -encoding UTF-8 -cp out -d out @s2.txt
-java -cp out Principal
-```
-
----
 
 ## Fluxo de Teste (roteiro rápido)
 
