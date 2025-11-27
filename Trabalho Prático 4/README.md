@@ -33,6 +33,7 @@ A aplicação oferece uma visualização interativa das operações básicas de 
 ## link da aplicação
 `(https://joshua-victor.github.io/AEDS-III/Trabalho%20Pr%C3%A1tico%204/web/index.html)`
 
+---
 
 ## Tela do Formulário de usabilidade do sistema
 <img width="590" height="622" alt="image" src="https://github.com/user-attachments/assets/2bfb0cf8-cb78-4ce7-ad68-f8475fd6a839" />
