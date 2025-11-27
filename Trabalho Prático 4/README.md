@@ -36,22 +36,22 @@ A aplicação oferece uma visualização interativa das operações básicas de 
 ## Checklist
 
 - [x] **A página web com a visualização interativa do CRUD de produtos foi criada?**
-   **SIM.**
+    **SIM.**
 
 - [x] **Há um vídeo de até 3 minutos demonstrando o uso da visualização?**
-   **SIM.**
+    **SIM.**
 
 - [x] **O trabalho foi criado apenas com HTML, CSS e JS?**
-   **SIM.**
+    **SIM.**
 
 - [x] **O relatório do trabalho foi entregue no APC?**
-   **SIM.**
+    **SIM.**
 
 - [x] **O trabalho está completo e funcionando sem erros de execução?**
-   **SIM.**
+    **SIM.**
 
 - [x] **O trabalho compila corretamente?**
-   **SIM.**
+    **SIM.**
  
 - [x] **O trabalho é original e não a cópia de um trabalho de outro grupo?**  
    **SIM.**
