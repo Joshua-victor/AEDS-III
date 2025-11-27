@@ -51,6 +51,7 @@ A aplicação oferece uma visualização interativa das operações básicas de 
     **SIM.**
 
 - [x] **O trabalho compila corretamente?**
+      
     **SIM.**
  
 - [x] **O trabalho é original e não a cópia de um trabalho de outro grupo?**  
