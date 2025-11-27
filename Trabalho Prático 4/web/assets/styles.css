@@ -1,0 +1,222 @@
+/* ======== RESET E BASE ======== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background: #f3f5fa;
+    padding: 20px;
+    color: #222;
+}
+
+h1, h2 {
+    color: #1e293b;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #475569;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+footer {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+}
+
+
+/* ======== LAYOUT ======== */
+main {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+/* Cartões */
+.card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    width: 420px;
+}
+
+
+/* ======== FORMULÁRIO ======== */
+label {
+    margin-top: 12px;
+    margin-bottom: 6px;
+    display: block;
+    font-weight: 600;
+    color: #334155;
+}
+
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #f8fafc;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.btn-row {
+    margin-top: 15px;
+}
+
+
+/* ======== BOTÕES ======== */
+button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 10px;
+    transition: 0.2s;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e1;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.small {
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+
+/* ======== ÁREA DE BUSCA ======== */
+.search-area {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.search-area input,
+.search-area select {
+    flex: 1;
+}
+
+
+/* ======== TABELA ======== */
+.table-wrapper {
+    max-height: 350px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+thead {
+    background: #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+td {
+    color: #334155;
+}
+
+th {
+    text-align: left;
+    color: #1e293b;
+}
+
+.actions button {
+    margin-right: 6px;
+}
+
+
+/* ======== ESTATÍSTICAS ======== */
+.stats {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #475569;
+}
+
+
+/* ======== SCROLLBAR PERSONALIZADO ======== */
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+
+/* ======== RESPONSIVIDADE ======== */
+@media (max-width: 950px) {
+    .card {
+        width: 100%;
+    }
+
+    main {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .search-area {
+        flex-direction: column;
+    }
+}
