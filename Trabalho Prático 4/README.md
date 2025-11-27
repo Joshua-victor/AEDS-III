@@ -29,25 +29,25 @@ A aplicação oferece uma visualização interativa das operações básicas de 
 
 
 ## Tela do Formulário de usabilidade do sistema
----<img width="697" height="687" alt="image" src="https://github.com/user-attachments/assets/b2f073fc-98b5-49ac-b7c4-e5354cb33e8a" />
+<img width="697" height="687" alt="image" src="https://github.com/user-attachments/assets/b2f073fc-98b5-49ac-b7c4-e5354cb33e8a" />
 
 ---
 
 ## Checklist
 
-- [x] A página web com a visualização interativa do CRUD de produtos foi criada?
+- [x] **A página web com a visualização interativa do CRUD de produtos foi criada?**
    **SIM.**
 
-- [x] Há um vídeo de até 3 minutos demonstrando o uso da visualização?
+- [x] **Há um vídeo de até 3 minutos demonstrando o uso da visualização?**
    **SIM.**
 
-- [x] O trabalho foi criado apenas com HTML, CSS e JS?
+- [x] **O trabalho foi criado apenas com HTML, CSS e JS?**
    **SIM.**
 
-- [x] O relatório do trabalho foi entregue no APC?
+- [x] **O relatório do trabalho foi entregue no APC?**
    **SIM.**
 
-- [x] O trabalho está completo e funcionando sem erros de execução?
+- [x] **O trabalho está completo e funcionando sem erros de execução?**
    **SIM.**
 
 - [x] **O trabalho compila corretamente?**
